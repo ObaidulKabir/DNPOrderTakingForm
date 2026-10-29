@@ -409,8 +409,8 @@ export class ConversationService {
       }
       spec.quantity = n;
     } else if (currentStep === 'customstock') {
-      const a = t.match(/(\d{3})\s*gsm.*cover/i);
-      const b = t.match(/(\d{3})\s*gsm.*inner/i);
+      const a = t.match(/(\d{2,3})\s*gsm(?:\s+\w+)?\s+cover/i);
+      const b = t.match(/(\d{2,3})\s*gsm(?:\s+\w+)?\s+inner/i);
       if (!a || !b) {
         const evaluation = await this.evaluationService.evaluate(spec, false);
         return {

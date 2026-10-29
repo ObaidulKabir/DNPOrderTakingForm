@@ -139,9 +139,115 @@ describe('Dynamic Data Repositories (PostgreSQL Relational + JSONB, JsonCsv, InM
         const flyerJobs = await repo.getHrjHistoricalJobs('flyers-leaflets');
         expect(flyerJobs.length).toBe(1);
         expect(flyerJobs[0].attributes?.sides).toBe('Double-sided');
+
+        expect(await repo.getProductById('does-not-exist')).toBeNull();
+        expect((await repo.getSupplierCapabilities('flyers-leaflets')).length).toBeGreaterThan(0);
+
+        const dnpAfter = await repo.addDnpSellingObservation({
+          id: 'dnp-test-1',
+          product_id: 'flyers-leaflets',
+          source: 'BO2',
+          qty: 250,
+          size2: 'A5',
+          pages: 8,
+          sell: 220,
+          vendor_due: 90,
+          paid_at: '2026-10-01 12:00:00',
+          hours_to_deadline: 18,
+          urgency_reliable: true,
+        });
+        expect(dnpAfter.some((o) => o.id === 'dnp-test-1')).toBe(true);
+        expect((await repo.getDnpSellingObservations('flyers-leaflets')).length).toBeGreaterThan(0);
+
+        await repo.saveHrjHistoricalJobs(await repo.getHrjHistoricalJobs());
+        await repo.saveDnpSellingObservations(await repo.getDnpSellingObservations());
+        await repo.saveRoute1StandardPrices(await repo.getRoute1StandardPrices());
+        await repo.saveCourierDistanceBands(await repo.getCourierDistanceBands());
+
+        const matrix = await repo.getStandardPriceMatrix('saddle-stitched-booklets');
+        expect(matrix.length).toBeGreaterThan(0);
+        await repo.saveStandardPriceMatrix('saddle-stitched-booklets', matrix.slice(0, 3));
+        expect((await repo.getStandardPriceMatrix('saddle-stitched-booklets')).length).toBe(3);
+        await repo.saveStandardPriceMatrix('no-such-product', []);
+        await repo.saveStandardPriceMatrix('saddle-stitched-booklets', matrix);
+
+        const cap = (await repo.getSupplierCapabilities('saddle-stitched-booklets'))[0];
+        const updatedCap = await repo.upsertSupplierCapability({ ...cap, supported: true });
+        expect(updatedCap.supported).toBe(true);
+
+        const renamed = await repo.upsertProduct({ ...booklets!, name: booklets!.name });
+        expect(renamed.id).toBe('saddle-stitched-booklets');
       }
     } finally {
       await pgRepo.close();
     }
+  });
+
+  it('persists JsonCsv writes against a temporary data directory without touching production seeds', async () => {
+    const fs = await import('node:fs/promises');
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'printpilot-jsoncsv-'));
+    const src = path.resolve(process.cwd(), 'data');
+    for (const name of await fs.readdir(src)) {
+      await fs.copyFile(path.join(src, name), path.join(tmp, name));
+    }
+
+    const repo = new JsonCsvDataRepository(tmp);
+    const products = await repo.getProducts();
+    const updated = await repo.upsertProduct({ ...products[0], defaultPaper: 'Temp Silk' });
+    expect(updated.defaultPaper).toBe('Temp Silk');
+    expect((await repo.getProducts())[0].defaultPaper).toBe('Temp Silk');
+
+    const added = await repo.upsertProduct({
+      ...products[0],
+      id: 'temp-product',
+      name: 'Temp product',
+      singularName: 'Temp product',
+    });
+    expect(added.id).toBe('temp-product');
+
+    const caps = await repo.getSupplierCapabilities();
+    await repo.upsertSupplierCapability({ ...caps[0], supported: true });
+    const newCap = await repo.upsertSupplierCapability({
+      ...caps[0],
+      productId: 'temp-product',
+    });
+    expect(newCap.productId).toBe('temp-product');
+
+    const cfg = await repo.updateBusinessConfig({ productName: 'Temp booklets' });
+    expect(cfg.productName).toBe('Temp booklets');
+
+    const jobs = await repo.addHrjHistoricalJob({
+      ...(await repo.getHrjHistoricalJobs())[0],
+      order_id: 'TEMP-HRJ',
+    });
+    expect(jobs.some((j) => j.order_id === 'TEMP-HRJ')).toBe(true);
+    expect((await repo.getHrjHistoricalJobs('saddle-stitched-booklets')).length).toBeGreaterThan(0);
+
+    const dnp = await repo.addDnpSellingObservation({
+      ...(await repo.getDnpSellingObservations())[0],
+      id: 'TEMP-DNP',
+    });
+    expect(dnp.some((o) => o.id === 'TEMP-DNP')).toBe(true);
+    expect((await repo.getDnpSellingObservations('saddle-stitched-booklets')).length).toBeGreaterThan(0);
+
+    const matrix = await repo.getStandardPriceMatrix();
+    expect(matrix.length).toBeGreaterThan(0);
+    await repo.saveStandardPriceMatrix('saddle-stitched-booklets', matrix.slice(0, 2));
+    expect((await repo.getRoute1StandardPrices('saddle-stitched-booklets')).length).toBe(2);
+
+    const bands = await repo.getCourierDistanceBands();
+    await repo.saveCourierDistanceBands(bands);
+    const pc = await repo.upsertPostcodeDistance('EC1A 1BB', { miles: 1.1, source: 'temp' });
+    expect(pc['EC1A1BB'].miles).toBe(1.1);
+
+    await fs.writeFile(
+      path.join(tmp, 'route1_booklet_prices.csv'),
+      'size,quantity,pages,price\nA4,25,8,40\n,,, \nA5,50,16,55\n',
+      'utf8'
+    );
+    const parsed = await repo.getRoute1StandardPrices();
+    expect(parsed.some((r) => r.size === 'A4' && r.quantity === 25)).toBe(true);
   });
 });

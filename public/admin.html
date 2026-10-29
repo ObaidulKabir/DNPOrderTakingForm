@@ -635,10 +635,33 @@
       </div>
 
       <div class="card manual-doc">
-        <h2>1. System Architecture Overview</h2>
+        <h2>1. Making a New Product Operational</h2>
+        <p>Saving a product under <strong>Products &amp; Attributes</strong> is <strong>not enough</strong>. The storefront can detect it and ask questions, but <strong>automatic quotes stay held</strong> until you also feed supplier limits and the three pricing datasets for <em>that</em> Product ID. Work the steps in this order.</p>
+        <p><strong>Operational</strong> means a customer can (1) type a keyword that selects this product, (2) finish the chat, and (3) receive an automatic quote for both urgent jobs (&lt; 72h) and standard jobs (≥ 72h).</p>
+        <ol>
+          <li><strong>Products &amp; Attributes</strong> — Click <strong>+ Create New Product</strong>. Set a unique slug (e.g. <code>business-cards</code>), names, VAT (<code>0</code> or <code>0.20</code>), distinctive NLP keywords, RFC hours, and every required attribute question (key, prompt, allowed values, quick-choice buttons). Click <strong>💾 Save Product to PostgreSQL</strong>. Chat can start; it still cannot quote.</li>
+          <li><strong>Supplier Capabilities</strong> — Add at least one <strong>HRJ Media</strong> (<code>hrj-media</code>) row for the new Product. Enter quantity limits by hours, for example:
+<pre>[{"maxHours":12,"maxQty":100,"choices":[25,50,100]},{"maxHours":24,"maxQty":250,"choices":[50,100,250]},{"maxHours":48,"maxQty":500,"choices":[50,100,250,500]},{"maxHours":120,"maxQty":1000,"choices":[100,250,500,1000]}]</pre>
+            Click <strong>💾 Save Supplier Capability</strong>. Optionally repeat for PrintedEasy.</li>
+          <li><strong>HRJ Historical Jobs (V3)</strong> — Feed <strong>8–12+</strong> completed vendor settlements tagged to this Product (do not leave Product on booklets). Use a spread of quantities, sizes, and hours-to-deadline. Click <strong>+ Feed HRJ Job Record</strong> for each. This powers urgent <strong>cost</strong>.</li>
+          <li><strong>DNP Selling Obs (V1)</strong> — Feed matching historical <strong>customer selling prices</strong> for the same Product. Click <strong>+ Feed Selling Price Record</strong>. This powers urgent <strong>customer price</strong>. Empty DNP data holds the quote.</li>
+          <li><strong>Route1 Standard Tariff</strong> — Upsert a supplier price for every Size / Quantity / Pages combination you want to auto-quote at ≥ 72h. The engine picks the smallest row whose size matches and whose quantity and pages are ≥ the job. Missing match → “No supported Route1 … cost”.</li>
+          <li><strong>Couriers &amp; Postcodes</strong> — Shared across products. Only add a postcode if it is not already listed; otherwise the bot asks for mileage.</li>
+          <li><strong>Verify on the storefront</strong> — Open <strong>← Open Live Quote Storefront</strong>. Prompt with a keyword (e.g. <code>250 A5 business cards … tomorrow by 4pm</code>). Confirm the bot uses the new singular name, an urgent total appears, then repeat with a deadline four+ days out for the standard tariff path.</li>
+        </ol>
+        <p><strong>Size and Pages in the pricing feeds must match how the engine looks the product up:</strong></p>
+        <ul>
+          <li>Booklets: real <code>A4</code>/<code>A5</code> and real page count.</li>
+          <li>Flyers: <code>A4</code>/<code>A5</code> (<code>A6</code> counts as <code>A5</code>); pages <code>4</code> single-sided / <code>8</code> double-sided.</li>
+          <li>Roller banners: Size always <code>A4</code>; pages <code>16</code> standard / <code>24</code> premium.</li>
+          <li>Any other new product: Size string in HRJ / DNP / Route1 must <strong>exactly equal</strong> the customer’s size choice, and Pages should be a complexity equivalent (default <strong>16</strong> if the product has no page count).</li>
+        </ul>
+        <p>Full checklist, a business-cards worked example, and hold-reason FAQ: see <code>ADMIN_USER_MANUAL.md</code> in the project root (section 4).</p>
+
+        <h2>2. System Architecture Overview</h2>
         <p>PrintPilot separates the <strong>Customer Conversational Storefront</strong> (<code>/</code>) from the <strong>Backend Decision &amp; Pricing Engine</strong> (<code>/api/*</code>) and <strong>PostgreSQL (Relational + JSONB) Database</strong>. Every change you save in this Admin Dashboard immediately updates PostgreSQL and takes effect on the next customer quote or chat turn without restarting the server.</p>
 
-        <h2>2. Onboarding or Editing a Print Product (Multi-Product Engine)</h2>
+        <h2>3. Onboarding or Editing a Print Product (Multi-Product Engine)</h2>
         <p>Navigate to <strong>Products &amp; Attributes</strong> in the left sidebar to manage the product catalog:</p>
         <ul>
           <li><strong>Product ID &amp; Names</strong>: Choose a unique URL-safe slug (e.g. <code>perfect-bound-books</code> or <code>business-cards</code>), plural display name, and singular name.</li>
@@ -654,7 +677,7 @@
           </li>
         </ul>
 
-        <h2>3. Managing Supplier Capabilities &amp; Machine Exclusions</h2>
+        <h2>4. Managing Supplier Capabilities &amp; Machine Exclusions</h2>
         <p>Navigate to <strong>Supplier Capabilities</strong> to control how suppliers (such as <strong>HRJ Media</strong> and <strong>PrintedEasy</strong>) handle each product:</p>
         <ul>
           <li><strong>Quantity Limits by Hours</strong>: Defines the maximum quantity that can be automatically quoted without human intervention based on hours remaining until deadline (e.g. up to 50 booklets within 12h, 100 within 24h).</li>
@@ -663,7 +686,7 @@
           </li>
         </ul>
 
-        <h2>4. Feeding Historical Pricing Data (HRJ V3 &amp; DNP Selling V1)</h2>
+        <h2>5. Feeding Historical Pricing Data (HRJ V3 &amp; DNP Selling V1)</h2>
         <p>Urgent jobs (&lt;72 hours) are priced using two independent empirical models backed by PostgreSQL:</p>
         <h3>A. HRJ Historical Jobs (Vendor Settlement Model V3)</h3>
         <ul>
@@ -677,10 +700,10 @@
           <li>The engine calculates weighted percentiles (<code>P25, P50, P65, P75, P90</code>) and selects <code>P75</code> for &le;12h, <code>P65</code> for &le;24h, or <code>P50</code> for &gt;24h, protected by a <code>2&times;</code> fulfilment cost floor and the <strong>Deadline Compression Barrier</strong> (&lt;18h).</li>
         </ul>
 
-        <h2>5. Managing Standard Tariffs (&ge;72h Route1 Matrix)</h2>
+        <h2>6. Managing Standard Tariffs (&ge;72h Route1 Matrix)</h2>
         <p>When a customer's deadline is 72 hours or more away, PrintPilot switches to the <strong>Standard Price Matrix</strong> (<strong>Route1 Standard Tariff</strong> tab). You can filter existing rows or upsert new <code>(Product, Size, Quantity, Pages, Supplier Price)</code> combinations.</p>
 
-        <h2>6. Managing Couriers, Distance Bands &amp; Verified Postcodes</h2>
+        <h2>7. Managing Couriers, Distance Bands &amp; Verified Postcodes</h2>
         <p>Go to <strong>Couriers &amp; Postcodes</strong>:</p>
         <ul>
           <li><strong>Verified Postcode Distances</strong>: Add UK postcodes and their road distance in miles from HRJ Media (<code>E3 4JN</code>). Once a postcode is registered here, customers delivering to that postcode do not need a staging mileage estimate.</li>

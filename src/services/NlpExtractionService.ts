@@ -231,7 +231,7 @@ export class NlpExtractionService {
             candidate
           );
         const looksPrintSpec =
-          /\b(?:gsm|pages?|pp|copies|copy|booklets?|flyers?|leaflets?|banners?|cover|inner|A4|A5|A6)\b/i.test(
+          /\b(?:gsm|pages?|pp|copies|copy|booklets?|flyers?|leaflets?|banners?|cover|inner|A4|A5|A6|mileage|miles?|artwork|sided)\b/i.test(
             candidate
           );
         if (candidate && looksAddress && !looksPrintSpec) {
