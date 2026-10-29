@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PrintPilot — Smart print sourcing</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="homeView">
+  <header class="nav">
+    <div class="wrap navin">
+      <div><div class="brand">Print<b>Pilot</b></div><small>Smart print sourcing</small></div>
+      <div class="muted" style="font-size:14px;display:flex;align-items:center;gap:16px"><span>Printing made simple.</span><a href="/admin.html" style="color:var(--muted);text-decoration:none;font-size:12px;border:1px solid var(--line);padding:5px 10px;border-radius:8px">⚙ Admin</a></div>
+    </div>
+  </header>
+  <main class="hero">
+    <div class="wrap">
+      <span class="pill">AI-ASSISTED PRINT SOURCING</span>
+      <h1>Tell us what you need printed. <span>We'll handle the rest.</span></h1>
+      <p class="lead">No complicated print forms. Describe your job in plain English and we'll ask only the questions needed to prepare an accurate quotation.</p>
+      <div class="ask">
+        <textarea id="initialPrompt" placeholder="Try: I need 25 A5 booklets, around 24 pages, delivered tomorrow morning.">100 copies, A4 portrait, 20 pages, 350gsm cover, 170gsm inner, 39 Solent House, E1 3NL, 3.4 miles and Artwork Ready. Needed by tomorrow 10 am</textarea>
+        <div class="askbar">
+          <div class="examples">This demo: A4 &amp; A5 saddle-stitched booklets</div>
+          <button class="primary" id="startBtn" type="button" onclick="start();return false;">Find my print option →</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <section>
+    <div class="wrap trust">
+      <div><strong>⚡ Built for deadlines</strong><span>Your exact delivery time drives availability and price.</span></div>
+      <div><strong>✓ Clear specifications</strong><span>We confirm important production details before you pay.</span></div>
+      <div><strong>◎ One point of contact</strong><span>No need to contact multiple printers yourself.</span></div>
+      <div><strong>£ One clear price</strong><span>One price for the delivery commitment shown.</span></div>
+    </div>
+  </section>
+</div>
+
+<div id="appView">
+  <div class="appnav">
+    <div class="wrap">
+      <div class="brand">Print<b>Pilot</b></div>
+      <button class="back" onclick="location.reload()">← Start again</button>
+    </div>
+  </div>
+  <div class="wrap appgrid">
+    <section class="card chat">
+      <div class="chathead">
+        <h2>Let's get your print job ready</h2>
+        <p>Answer naturally — we'll only ask what is still needed.</p>
+      </div>
+      <div class="messages" id="messages"></div>
+      <div id="success" class="success">
+        <div class="tick">✓</div>
+        <h2>Your order is ready.</h2>
+        <p>This demo would now take payment and create the fulfilment workflow against the confirmed delivery commitment.</p>
+        <span class="ref">Demo order PP-BOOKLET</span>
+      </div>
+      <div class="attach" id="attach">
+        <label>📎 Upload artwork<input id="file" type="file" accept=".pdf,.jpg,.jpeg,.png" hidden></label>
+        <span id="fileText">PDF preferred</span>
+      </div>
+      <div class="composer" id="composer">
+        <input id="replyInput" placeholder="Type your answer…" autocomplete="off">
+        <button class="primary" id="sendBtn" type="button" onclick="send();return false;">Send</button>
+      </div>
+    </section>
+
+    <aside class="card side">
+      <h3>Your print specification</h3>
+      <div class="muted" style="font-size:13px" id="progressText">Collecting details…</div>
+      <div class="progress"><i id="progressBar"></i></div>
+      <div id="specList"></div>
+      <div class="missing" id="missingBox"></div>
+      <div class="checking" id="checking">
+        <strong>We're checking this deadline.</strong><br>This turnaround needs confirmation before we can take payment.
+      </div>
+      <div class="quote" id="quote">
+        <div class="deadline">Delivery commitment<br><b id="commitment"></b></div>
+        <div class="price" id="price"></div>
+        <button class="primary" id="payBtn" type="button" onclick="completePayment();return false;">Confirm &amp; pay</button>
+        <div class="muted" style="font-size:11px;line-height:1.5;margin-top:9px">The displayed total is calculated for the exact delivery commitment above. Booklets carry no VAT in this quotation.</div>
+      </div>
+      <details class="debug">
+        <summary>Staging diagnostics</summary>
+        <div class="debugbox" id="debug"></div>
+      </details>
+    </aside>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PrintPilot Admin — Data &amp; Multi-Product Engine</title>
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span>Print<b>Pilot</b></span>
+    <span class="badge">PostgreSQL + JSONB Admin</span>
+  </div>
+  <div class="top-actions">
+    <button class="btn" type="button" onclick="switchTab('manual')">📖 Admin User Manual</button>
+    <a class="btn primary" href="/">← Open Live Quote Storefront</a>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">Catalog &amp; Routing</div>
+    <button class="nav-btn active" data-tab="overview" onclick="switchTab('overview')">
+      <span>Dashboard Overview</span>
+    </button>
+    <button class="nav-btn" data-tab="products" onclick="switchTab('products')">
+      <span>Products &amp; Attributes</span>
+      <span class="nav-count" id="cntProducts">0</span>
+    </button>
+    <button class="nav-btn" data-tab="capabilities" onclick="switchTab('capabilities')">
+      <span>Supplier Capabilities</span>
+      <span class="nav-count" id="cntCapabilities">0</span>
+    </button>
+
+    <div class="sidebar-section">Pricing Models Data</div>
+    <button class="nav-btn" data-tab="hrj" onclick="switchTab('hrj')">
+      <span>HRJ Historical Jobs (V3)</span>
+      <span class="nav-count" id="cntHrj">0</span>
+    </button>
+    <button class="nav-btn" data-tab="dnp" onclick="switchTab('dnp')">
+      <span>DNP Selling Obs (V1)</span>
+      <span class="nav-count" id="cntDnp">0</span>
+    </button>
+    <button class="nav-btn" data-tab="route1" onclick="switchTab('route1')">
+      <span>Route1 Standard Tariff</span>
+      <span class="nav-count" id="cntRoute1">0</span>
+    </button>
+
+    <div class="sidebar-section">Logistics &amp; Rules</div>
+    <button class="nav-btn" data-tab="logistics" onclick="switchTab('logistics')">
+      <span>Couriers &amp; Postcodes</span>
+      <span class="nav-count" id="cntPostcodes">0</span>
+    </button>
+    <button class="nav-btn" data-tab="config" onclick="switchTab('config')">
+      <span>Global Business Rules</span>
+    </button>
+
+    <div class="sidebar-section">Documentation</div>
+    <button class="nav-btn" data-tab="manual" onclick="switchTab('manual')">
+      <span>📖 Admin User Manual</span>
+    </button>
+  </aside>
+
+  <main class="content">
+    <!-- 1. OVERVIEW TAB -->
+    <section class="tab-pane active" id="tab-overview">
+      <div class="page-head">
+        <div>
+          <h1>System Data &amp; Multi-Product Overview</h1>
+          <p>Feed and manage dynamic PostgreSQL (Relational + JSONB) datasets that power conversational intake, RFC forecasting, courier routing, and pricing.</p>
+        </div>
+        <button class="btn" onclick="loadAllAdminData()">↻ Refresh Data</button>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span>Active Products</span>
+          <strong id="kpiProducts">—</strong>
+        </div>
+        <div class="kpi-card">
+          <span>HRJ V3 Historical Jobs</span>
+          <strong id="kpiHrj">—</strong>
+        </div>
+        <div class="kpi-card">
+          <span>DNP V1 Selling Records</span>
+          <strong id="kpiDnp">—</strong>
+        </div>
+        <div class="kpi-card">
+          <span>Route1 Standard Tariffs</span>
+          <strong id="kpiRoute1">—</strong>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Configured Multi-Product Catalog</h2>
+        <p class="sub">Each product defines its own VAT rate, NLP detection keywords, RFC parameters, compression curve, and dynamic JSONB specification attributes.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Product ID</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>VAT</th>
+                <th>Dynamic Attributes (JSONB)</th>
+                <th>NLP Keywords</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="overviewProductsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. PRODUCTS & DYNAMIC ATTRIBUTES TAB -->
+    <section class="tab-pane" id="tab-products">
+      <div class="page-head">
+        <div>
+          <h1>Products &amp; Dynamic Attributes</h1>
+          <p>Create new print products or edit existing products, their conversational questions, validation rules, and pricing parameters.</p>
+        </div>
+        <button class="btn primary" onclick="initNewProductForm()">+ Create New Product</button>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div>
+            <h2 id="prodFormTitle">Edit Product Definition</h2>
+            <p class="sub" style="margin:0">Select a product below to load its schema, or click "+ Create New Product".</p>
+          </div>
+          <select id="productSelector" class="btn" onchange="selectProductForEdit(this.value)"></select>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Product ID (slug)</label>
+            <input id="prodId" placeholder="e.g. business-cards">
+          </div>
+          <div class="form-group">
+            <label>Plural Name</label>
+            <input id="prodName" placeholder="e.g. Luxury business cards">
+          </div>
+          <div class="form-group">
+            <label>Singular Name</label>
+            <input id="prodSingular" placeholder="e.g. Luxury business card">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input id="prodCategory" placeholder="e.g. Stationery">
+          </div>
+          <div class="form-group">
+            <label>VAT Rate (0 = 0%, 0.20 = 20%)</label>
+            <input id="prodVat" type="number" step="0.01" min="0" max="1" value="0">
+          </div>
+          <div class="form-group">
+            <label>Default Paper / Material</label>
+            <input id="prodPaper" placeholder="e.g. 400gsm Silk">
+          </div>
+          <div class="form-group full">
+            <label>NLP Detection Keywords (comma-separated)</label>
+            <input id="prodKeywords" placeholder="e.g. business card, business cards, calling card">
+          </div>
+        </div>
+
+        <h3 style="margin:22px 0 10px;font-size:14px">RFC Production Forecast Config</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Base Expected Hours</label>
+            <input id="prodRfcBase" type="number" step="0.1" value="3.5">
+          </div>
+          <div class="form-group">
+            <label>Min Expected Hours</label>
+            <input id="prodRfcMin" type="number" step="0.1" value="2.0">
+          </div>
+          <div class="form-group">
+            <label>P80 Anchor Hours</label>
+            <input id="prodRfcP80" type="number" step="0.1" value="6.5">
+          </div>
+        </div>
+
+        <h3 style="margin:22px 0 10px;font-size:14px">Pricing &amp; Compression Config</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Standard Route Threshold (Hours)</label>
+            <input id="prodStdHours" type="number" step="1" value="72">
+          </div>
+          <div class="form-group">
+            <label>Standard Delivery Allowance (£)</label>
+            <input id="prodStdDel" type="number" step="1" value="18">
+          </div>
+          <div class="form-group">
+            <label>Protected Cost Floor Multiplier (e.g. 2 = 2×)</label>
+            <input id="prodFloorMult" type="number" step="0.1" value="2">
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px">
+          <h3 style="margin:0;font-size:15px">Dynamic Product Attributes (Conversational Questions &amp; Sidebar Inputs)</h3>
+          <button class="btn sm" type="button" onclick="addAttributeRow()">+ Add Attribute Question</button>
+        </div>
+        <div id="productAttributesContainer"></div>
+
+        <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:10px">
+          <button class="btn primary" type="button" onclick="saveProductForm()">💾 Save Product to PostgreSQL</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. SUPPLIER CAPABILITIES TAB -->
+    <section class="tab-pane" id="tab-capabilities">
+      <div class="page-head">
+        <div>
+          <h1>Supplier Product Capabilities &amp; Machine Exclusions</h1>
+          <p>Configure which suppliers support each product, turnaround quantity limits by hours remaining, and machine exclusion rules (JSONB).</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Add / Update Supplier Capability Rule</h2>
+        <p class="sub">Define supplier constraints for a product (e.g. HRJ Media quantity caps by hours or A4 Landscape machine exclusions).</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Supplier ID</label>
+            <input id="capSupplierId" value="hrj-media" placeholder="hrj-media or printed-easy">
+          </div>
+          <div class="form-group">
+            <label>Supplier Name</label>
+            <input id="capSupplierName" value="HRJ Media" placeholder="HRJ Media">
+          </div>
+          <div class="form-group">
+            <label>Product</label>
+            <select id="capProductId"></select>
+          </div>
+          <div class="form-group full">
+            <label>Default Quantity Quick Choices (comma-separated numbers)</label>
+            <input id="capDefaultChoices" value="10, 25, 50, 100, 250, 500">
+          </div>
+          <div class="form-group full">
+            <label>Quantity Limits by Hours (JSON array of {maxHours, maxQty, choices})</label>
+            <textarea id="capQtyLimits">[{"maxHours":12,"maxQty":50,"choices":[5,10,25,50]},{"maxHours":24,"maxQty":100,"choices":[10,25,50,75,100]}]</textarea>
+          </div>
+          <div class="form-group full">
+            <label>Excluded Attribute Combinations (JSON array of {attributes, maxHours, reason})</label>
+            <textarea id="capExclusions">[]</textarea>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <button class="btn primary" onclick="saveSupplierCapability()">💾 Save Supplier Capability</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Existing Supplier Capabilities</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Supplier</th>
+                <th>Product ID</th>
+                <th>Supported</th>
+                <th>Turnaround Quantity Tiers</th>
+                <th>Machine Exclusions</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="capabilitiesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. HRJ HISTORICAL JOBS TAB -->
+    <section class="tab-pane" id="tab-hrj">
+      <div class="page-head">
+        <div>
+          <h1>HRJ Pricing Model V3 — Historical Settlement Feed</h1>
+          <p>Feed verified BO1/BO2 HRJ vendor settlements. The kernel similarity + ridge regression model recalculates live quotes immediately.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Feed New HRJ Historical Job</h2>
+        <p class="sub">Add a completed urgent job settlement to improve HRJ V3 support density.</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Order ID</label>
+            <input id="hrjOrderId" placeholder="e.g. 19801">
+          </div>
+          <div class="form-group">
+            <label>Product</label>
+            <select id="hrjProductId"></select>
+          </div>
+          <div class="form-group">
+            <label>Actual HRJ Settlement (£ vendor_due)</label>
+            <input id="hrjVendorDue" type="number" step="0.01" placeholder="e.g. 165.00">
+          </div>
+          <div class="form-group">
+            <label>Quantity</label>
+            <input id="hrjQty" type="number" step="1" placeholder="e.g. 50">
+          </div>
+          <div class="form-group">
+            <label>Finished Size</label>
+            <input id="hrjSize" value="A4" placeholder="A4 or A5">
+          </div>
+          <div class="form-group">
+            <label>Pages (or complexity eq.)</label>
+            <input id="hrjPages" type="number" step="4" value="20">
+          </div>
+          <div class="form-group">
+            <label>Hours to Deadline</label>
+            <input id="hrjHours" type="number" step="0.1" value="14.5">
+          </div>
+          <div class="form-group">
+            <label>Source</label>
+            <select id="hrjSource">
+              <option value="BO2">BO2 (Controlled Urgency)</option>
+              <option value="BO1">BO1</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Urgency Reliable?</label>
+            <select id="hrjReliable">
+              <option value="true">Yes (true)</option>
+              <option value="false">No (false)</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <button class="btn primary" onclick="addHrjJob()">+ Feed HRJ Job Record</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>HRJ Historical Observations (<span id="hrjCountLabel">0</span> records)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Product</th>
+                <th>Source</th>
+                <th>Qty</th>
+                <th>Size</th>
+                <th>Pages</th>
+                <th>Hours to DL</th>
+                <th>HRJ Settlement (£)</th>
+                <th>Paid At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="hrjTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. DNP SELLING OBSERVATIONS TAB -->
+    <section class="tab-pane" id="tab-dnp">
+      <div class="page-head">
+        <div>
+          <h1>DNP Selling Price Model V1 — Historical Customer Prices</h1>
+          <p>Feed observed customer selling prices used to compute weighted P25 / P50 / P65 / P75 / P90 commercial placement.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Feed New DNP Selling Observation</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Order ID</label>
+            <input id="dnpId" placeholder="e.g. 19801">
+          </div>
+          <div class="form-group">
+            <label>Product</label>
+            <select id="dnpProductId"></select>
+          </div>
+          <div class="form-group">
+            <label>Customer Selling Price (£ sell)</label>
+            <input id="dnpSell" type="number" step="0.01" placeholder="e.g. 550.00">
+          </div>
+          <div class="form-group">
+            <label>Vendor Cost (£ vendor_due)</label>
+            <input id="dnpVendorDue" type="number" step="0.01" placeholder="e.g. 165.00">
+          </div>
+          <div class="form-group">
+            <label>Quantity</label>
+            <input id="dnpQty" type="number" step="1" placeholder="e.g. 50">
+          </div>
+          <div class="form-group">
+            <label>Size</label>
+            <input id="dnpSize" value="A4">
+          </div>
+          <div class="form-group">
+            <label>Pages</label>
+            <input id="dnpPages" type="number" step="4" value="20">
+          </div>
+          <div class="form-group">
+            <label>Hours to Deadline</label>
+            <input id="dnpHours" type="number" step="0.1" value="14.5">
+          </div>
+          <div class="form-group">
+            <label>Source</label>
+            <select id="dnpSource">
+              <option value="BO2">BO2</option>
+              <option value="BO1">BO1</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <button class="btn primary" onclick="addDnpObservation()">+ Feed Selling Price Record</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>DNP Selling Price Observations (<span id="dnpCountLabel">0</span> records)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Product</th>
+                <th>Source</th>
+                <th>Qty</th>
+                <th>Size</th>
+                <th>Pages</th>
+                <th>Customer Sell (£)</th>
+                <th>Vendor Cost (£)</th>
+                <th>Hours to DL</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="dnpTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. ROUTE1 STANDARD TARIFF TAB -->
+    <section class="tab-pane" id="tab-route1">
+      <div class="page-head">
+        <div>
+          <h1>Standard Price Matrix (≥72h Route1 Benchmark)</h1>
+          <p>Manage supplier tariff rows used when customer deadline is ≥72 hours away.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Add / Update Standard Price Row</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Product</label>
+            <select id="r1ProductId"></select>
+          </div>
+          <div class="form-group">
+            <label>Size</label>
+            <input id="r1Size" value="A4" placeholder="A4 or A5">
+          </div>
+          <div class="form-group">
+            <label>Quantity</label>
+            <input id="r1Qty" type="number" step="1" placeholder="e.g. 100">
+          </div>
+          <div class="form-group">
+            <label>Pages</label>
+            <input id="r1Pages" type="number" step="4" placeholder="e.g. 20">
+          </div>
+          <div class="form-group">
+            <label>Supplier Production Cost (£)</label>
+            <input id="r1Price" type="number" step="0.01" placeholder="e.g. 152.75">
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <button class="btn primary" onclick="addRoute1PriceRow()">+ Upsert Standard Tariff Row</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h2 style="margin:0">Route1 Tariff Rows (<span id="r1CountLabel">0</span> total)</h2>
+          <input id="r1Filter" placeholder="Filter by size/qty/pages (e.g. A4 100)..." oninput="renderRoute1Table()" style="border:1px solid #d0d5dd;border-radius:8px;padding:7px 11px;font-size:13px;width:250px">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Product ID</th>
+                <th>Size</th>
+                <th>Quantity</th>
+                <th>Pages</th>
+                <th>Supplier Price (£)</th>
+              </tr>
+            </thead>
+            <tbody id="route1Table"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. LOGISTICS & POSTCODES TAB -->
+    <section class="tab-pane" id="tab-logistics">
+      <div class="page-head">
+        <div>
+          <h1>Courier Distance Bands &amp; Verified Postcode Distances</h1>
+          <p>Manage Gophr vs. DNP distance band tariffs, post-RFC operational buffers, and verified UK postcode road distances from HRJ Media (E3 4JN).</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Add / Update Verified Postcode Road Distance</h2>
+        <p class="sub">When a postcode is registered here, the system resolves road mileage automatically without needing a developer mileage override.</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>UK Postcode</label>
+            <input id="pcCode" placeholder="e.g. E1 3NL">
+          </div>
+          <div class="form-group">
+            <label>Road Miles from HRJ (E3 4JN)</label>
+            <input id="pcMiles" type="number" step="0.1" placeholder="e.g. 3.4">
+          </div>
+          <div class="form-group">
+            <label>Provenance / Source</label>
+            <input id="pcSource" value="Verified Admin Route Table" placeholder="e.g. BO2 verified route">
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <button class="btn primary" onclick="addPostcodeDistance()">+ Save Postcode Distance</button>
+        </div>
+
+        <div class="table-wrap" style="margin-top:18px">
+          <table>
+            <thead>
+              <tr>
+                <th>Normalized Postcode</th>
+                <th>Road Distance (Miles)</th>
+                <th>Provenance / Source</th>
+              </tr>
+            </thead>
+            <tbody id="postcodesTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Courier Distance Bands (Gophr vs. DNP Baseline &amp; Post-RFC Buffers)</h2>
+        <p class="sub">Edit any cell below and click "Save Distance Bands" to update courier baselines and DNP mileage-sensitive operational buffers.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Band Label</th>
+                <th>Max Miles</th>
+                <th>Gophr Baseline (£)</th>
+                <th>DNP Baseline (£)</th>
+                <th>DNP Post-RFC Buffer (Hours)</th>
+              </tr>
+            </thead>
+            <tbody id="bandsTable"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <button class="btn primary" onclick="saveDistanceBands()">💾 Save Distance Bands</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. GLOBAL BUSINESS RULES TAB -->
+    <section class="tab-pane" id="tab-config">
+      <div class="page-head">
+        <div>
+          <h1>Global Business Rules &amp; Cutoff Configuration</h1>
+          <p>Adjust PrintedEasy cutoffs, HRJ dispatch windows, courier OOH surcharges, and global fallback rules.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>PrintedEasy &amp; HRJ Routing Rules</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>PE Customer Payment Cutoff (mins from midnight, 930 = 15:30)</label>
+            <input id="cfgPeCutoff" type="number" step="1">
+          </div>
+          <div class="form-group">
+            <label>PE Supplier Order Cutoff (mins, 960 = 16:00)</label>
+            <input id="cfgPeOrderCutoff" type="number" step="1">
+          </div>
+          <div class="form-group">
+            <label>HRJ Origin Collection Address</label>
+            <input id="cfgHrjOrigin">
+          </div>
+          <div class="form-group">
+            <label>HRJ Safe Next-Day Delivery Hour (13 = 13:00)</label>
+            <input id="cfgHrjSafeHour" type="number" step="0.5">
+          </div>
+          <div class="form-group">
+            <label>HRJ Min Hours (Early Tomorrow Overnight Route)</label>
+            <input id="cfgHrjMinEarly" type="number" step="0.5">
+          </div>
+          <div class="form-group">
+            <label>HRJ Min Hours (Direct Same-Day Route)</label>
+            <input id="cfgHrjMinDirect" type="number" step="0.5">
+          </div>
+        </div>
+
+        <h2 style="margin-top:24px">Courier &amp; Out-of-Hours (OOH) Rules</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>DNP Out-of-Hours Surcharge (£)</label>
+            <input id="cfgOohSurcharge" type="number" step="1">
+          </div>
+          <div class="form-group">
+            <label>Gophr Compressed Window Threshold (Hours)</label>
+            <input id="cfgGophrComp" type="number" step="0.5">
+          </div>
+          <div class="form-group">
+            <label>Urban Planning Travel Speed (MPH)</label>
+            <input id="cfgTravelSpeed" type="number" step="1">
+          </div>
+        </div>
+
+        <div style="margin-top:18px;display:flex;justify-content:flex-end">
+          <button class="btn primary" onclick="saveBusinessConfig()">💾 Save Business Rules</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. BUILT-IN ADMIN USER MANUAL TAB -->
+    <section class="tab-pane" id="tab-manual">
+      <div class="page-head">
+        <div>
+          <h1>PrintPilot Administrator User Manual</h1>
+          <p>Complete operational guide for feeding data, onboarding new print products, tuning pricing models, and managing courier logistics.</p>
+        </div>
+      </div>
+
+      <div class="card manual-doc">
+        <h2>1. System Architecture Overview</h2>
+        <p>PrintPilot separates the <strong>Customer Conversational Storefront</strong> (<code>/</code>) from the <strong>Backend Decision &amp; Pricing Engine</strong> (<code>/api/*</code>) and <strong>PostgreSQL (Relational + JSONB) Database</strong>. Every change you save in this Admin Dashboard immediately updates PostgreSQL and takes effect on the next customer quote or chat turn without restarting the server.</p>
+
+        <h2>2. Onboarding or Editing a Print Product (Multi-Product Engine)</h2>
+        <p>Navigate to <strong>Products &amp; Attributes</strong> in the left sidebar to manage the product catalog:</p>
+        <ul>
+          <li><strong>Product ID &amp; Names</strong>: Choose a unique URL-safe slug (e.g. <code>perfect-bound-books</code> or <code>business-cards</code>), plural display name, and singular name.</li>
+          <li><strong>VAT Rate</strong>: Enter <code>0</code> for zero-rated print items (such as UK booklets and leaflets) or <code>0.20</code> for standard 20% VAT items (such as roller banners, posters, and stationery).</li>
+          <li><strong>NLP Detection Keywords</strong>: Enter comma-separated words (e.g. <code>flyer, flyers, leaflet</code>). When a customer types a natural-language request on the home page, PrintPilot scans these keywords to automatically switch to the matching product schema.</li>
+          <li><strong>Dynamic Product Attributes (JSONB)</strong>: Click <strong>+ Add Attribute Question</strong> to define the exact specification fields required for that product:
+            <ul>
+              <li><strong>Attribute Key</strong>: Internal key stored in PostgreSQL <code>JSONB</code> (e.g. <code>size</code>, <code>sides</code>, <code>lamination</code>, <code>pages</code>).</li>
+              <li><strong>Conversational Question Prompt</strong>: The exact question the AI bot asks in chat when this field is missing from the customer's initial prompt.</li>
+              <li><strong>Input Type &amp; Allowed Values</strong>: Choose <code>select</code> (dropdown), <code>number</code>, or <code>text</code>. For dropdowns, provide comma-separated allowed values (e.g. <code>Single-sided, Double-sided</code>). For numbers, you can enforce <code>min</code>, <code>max</code>, and <code>multipleOf</code> (such as multiples of 4 for saddle-stitched pages).</li>
+              <li><strong>Quick Choices</strong>: Buttons displayed below the bot's question in chat so the customer can answer with a single click.</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h2>3. Managing Supplier Capabilities &amp; Machine Exclusions</h2>
+        <p>Navigate to <strong>Supplier Capabilities</strong> to control how suppliers (such as <strong>HRJ Media</strong> and <strong>PrintedEasy</strong>) handle each product:</p>
+        <ul>
+          <li><strong>Quantity Limits by Hours</strong>: Defines the maximum quantity that can be automatically quoted without human intervention based on hours remaining until deadline (e.g. up to 50 booklets within 12h, 100 within 24h).</li>
+          <li><strong>Excluded Attribute Combinations</strong>: JSONB rules that automatically place an order into <strong>AMBER / Manual Check</strong> when a supplier machine cannot run a specific combination. Example for HRJ Media A4 Landscape booklets under 72h:
+<pre>[{"attributes": {"size": "A4", "orientation": "Landscape"}, "maxHours": 72, "reason": "HRJ excluded: A4 Landscape cannot be produced on its machine."}]</pre>
+          </li>
+        </ul>
+
+        <h2>4. Feeding Historical Pricing Data (HRJ V3 &amp; DNP Selling V1)</h2>
+        <p>Urgent jobs (&lt;72 hours) are priced using two independent empirical models backed by PostgreSQL:</p>
+        <h3>A. HRJ Historical Jobs (Vendor Settlement Model V3)</h3>
+        <ul>
+          <li>Go to <strong>HRJ Historical Jobs (V3)</strong> to add completed vendor settlement records (<code>vendor_due</code>).</li>
+          <li>The engine computes kernel similarity across quantity, page/complexity, size, and urgency bucket, blended with recency-weighted ridge regression.</li>
+          <li>It outputs an <strong>Expected Settlement</strong> and a <strong>Protected HRJ Allowance</strong> (<code>max(expected + £35, P80)</code>) used as the cost basis.</li>
+        </ul>
+        <h3>B. DNP Selling Observations (Customer Price Model V1)</h3>
+        <ul>
+          <li>Go to <strong>DNP Selling Obs (V1)</strong> to feed historical customer selling prices (<code>sell</code>).</li>
+          <li>The engine calculates weighted percentiles (<code>P25, P50, P65, P75, P90</code>) and selects <code>P75</code> for &le;12h, <code>P65</code> for &le;24h, or <code>P50</code> for &gt;24h, protected by a <code>2&times;</code> fulfilment cost floor and the <strong>Deadline Compression Barrier</strong> (&lt;18h).</li>
+        </ul>
+
+        <h2>5. Managing Standard Tariffs (&ge;72h Route1 Matrix)</h2>
+        <p>When a customer's deadline is 72 hours or more away, PrintPilot switches to the <strong>Standard Price Matrix</strong> (<strong>Route1 Standard Tariff</strong> tab). You can filter existing rows or upsert new <code>(Product, Size, Quantity, Pages, Supplier Price)</code> combinations.</p>
+
+        <h2>6. Managing Couriers, Distance Bands &amp; Verified Postcodes</h2>
+        <p>Go to <strong>Couriers &amp; Postcodes</strong>:</p>
+        <ul>
+          <li><strong>Verified Postcode Distances</strong>: Add UK postcodes and their road distance in miles from HRJ Media (<code>E3 4JN</code>). Once a postcode is registered here, customers delivering to that postcode do not need a staging mileage estimate.</li>
+          <li><strong>Courier Distance Bands</strong>: Edit Gophr and DNP baseline costs and DNP's mileage-sensitive post-RFC operational buffer hours for each mileage tier (<code>0–3 mi</code> through <code>35–80 mi</code>).</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="/admin.js"></script>
+</body>
+</html>

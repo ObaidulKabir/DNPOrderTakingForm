@@ -1,0 +1,308 @@
+[
+  {
+    "id": "saddle-stitched-booklets",
+    "name": "Saddle-stitched booklets",
+    "singularName": "Saddle-stitched booklet",
+    "category": "Booklets & Brochures",
+    "vatRate": 0,
+    "active": true,
+    "defaultPaper": "Silk / Matt",
+    "keywords": ["booklet", "booklets", "brochure", "brochures", "saddle", "stitched", "pages", "pp", "cover", "inner"],
+    "stockRecommendation": {
+      "promptHtml": "For this booklet, our recommended specification is <strong>350gsm silk cover with 170gsm silk inner pages</strong>. Would you like to use that?",
+      "recommendedValues": {
+        "cover": "350gsm Silk",
+        "inner": "170gsm Silk"
+      },
+      "customPromptHtml": "Type the cover and inner stock you would like, for example “250gsm silk cover, 170gsm silk inner”."
+    },
+    "rfcModelConfig": {
+      "baseExpectedHours": 4.0,
+      "minExpectedHours": 2.5,
+      "a4AdderHours": 0.55,
+      "p80AnchorHours": 8.5,
+      "p80BlendWeight": 0.38,
+      "primaryDriverKey": "pages",
+      "primaryDriverBaseline": 24,
+      "primaryDriverSlope": 0.055
+    },
+    "pricingConfig": {
+      "standardThresholdHours": 72,
+      "standardDeliveryAllowance": 18,
+      "protectedCostFloorMultiplier": 2,
+      "quoteRoundingStep": 5,
+      "compressionRoundingStep": 25,
+      "deadlineCompressionPoints": [
+        [0, 1000],
+        [4, 600],
+        [6, 400],
+        [8, 250],
+        [12, 100],
+        [18, 0],
+        [23, 0]
+      ]
+    },
+    "attributes": [
+      {
+        "productId": "saddle-stitched-booklets",
+        "attributeKey": "size",
+        "label": "Finished size",
+        "inputType": "select",
+        "sortOrder": 1,
+        "required": true,
+        "questionPrompt": "What finished size do you need?",
+        "validationRules": {
+          "allowedValues": ["A5", "A4"],
+          "errorMessage": "Please choose A5 or A4."
+        },
+        "quickChoices": [
+          {"label": "A5", "value": "A5"},
+          {"label": "A4", "value": "A4"}
+        ]
+      },
+      {
+        "productId": "saddle-stitched-booklets",
+        "attributeKey": "orientation",
+        "label": "Orientation",
+        "inputType": "select",
+        "sortOrder": 2,
+        "required": true,
+        "questionPrompt": "Is the finished booklet portrait or landscape?",
+        "validationRules": {
+          "allowedValues": ["Portrait", "Landscape"],
+          "errorMessage": "Please choose Portrait or Landscape."
+        },
+        "quickChoices": [
+          {"label": "Portrait", "value": "Portrait"},
+          {"label": "Landscape", "value": "Landscape"}
+        ]
+      },
+      {
+        "productId": "saddle-stitched-booklets",
+        "attributeKey": "pages",
+        "label": "Pages",
+        "inputType": "number",
+        "sortOrder": 3,
+        "required": true,
+        "placeholder": "incl. cover",
+        "suffix": "pp incl. cover",
+        "questionPrompt": "How many pages are there <strong>including the cover</strong>? Saddle-stitched booklets are normally produced in multiples of 4.",
+        "validationRules": {
+          "min": 8,
+          "max": 60,
+          "multipleOf": 4,
+          "errorMessage": "For this demo, please use a page count from 8–60 in multiples of 4."
+        },
+        "quickChoices": [
+          {"label": "12 pages", "value": 12},
+          {"label": "16 pages", "value": 16},
+          {"label": "20 pages", "value": 20},
+          {"label": "24 pages", "value": 24},
+          {"label": "32 pages", "value": 32},
+          {"label": "48 pages", "value": 48},
+          {"label": "Type another", "value": "typedPages"}
+        ]
+      },
+      {
+        "productId": "saddle-stitched-booklets",
+        "attributeKey": "cover",
+        "label": "Cover",
+        "inputType": "select",
+        "wideInput": true,
+        "sortOrder": 4,
+        "required": true,
+        "compositeGroup": "stock",
+        "questionPrompt": "What cover paper stock do you need?",
+        "validationRules": {
+          "allowedValues": ["350gsm Silk", "250gsm Silk", "170gsm Silk", "130gsm Silk"]
+        },
+        "quickChoices": [
+          {"label": "350gsm Silk", "value": "350gsm Silk"},
+          {"label": "250gsm Silk", "value": "250gsm Silk"}
+        ]
+      },
+      {
+        "productId": "saddle-stitched-booklets",
+        "attributeKey": "inner",
+        "label": "Inner pages",
+        "inputType": "select",
+        "wideInput": true,
+        "sortOrder": 5,
+        "required": true,
+        "compositeGroup": "stock",
+        "questionPrompt": "What inner page stock do you need?",
+        "validationRules": {
+          "allowedValues": ["170gsm Silk", "130gsm Silk", "250gsm Silk"]
+        },
+        "quickChoices": [
+          {"label": "170gsm Silk", "value": "170gsm Silk"},
+          {"label": "130gsm Silk", "value": "130gsm Silk"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "flyers-leaflets",
+    "name": "Flat flyers & leaflets",
+    "singularName": "Flat flyer / leaflet",
+    "category": "Flyers & Leaflets",
+    "vatRate": 0,
+    "active": true,
+    "defaultPaper": "Silk",
+    "keywords": ["flyer", "flyers", "leaflet", "leaflets", "handout", "handouts", "single-sided", "double-sided"],
+    "stockRecommendation": null,
+    "rfcModelConfig": {
+      "baseExpectedHours": 2.8,
+      "minExpectedHours": 2.0,
+      "a4AdderHours": 0.25,
+      "p80AnchorHours": 5.5,
+      "p80BlendWeight": 0.35
+    },
+    "pricingConfig": {
+      "standardThresholdHours": 72,
+      "standardDeliveryAllowance": 15,
+      "protectedCostFloorMultiplier": 2,
+      "quoteRoundingStep": 5,
+      "compressionRoundingStep": 25,
+      "deadlineCompressionPoints": [
+        [0, 600],
+        [4, 400],
+        [6, 250],
+        [8, 150],
+        [12, 75],
+        [18, 0],
+        [23, 0]
+      ]
+    },
+    "attributes": [
+      {
+        "productId": "flyers-leaflets",
+        "attributeKey": "size",
+        "label": "Finished size",
+        "inputType": "select",
+        "sortOrder": 1,
+        "required": true,
+        "questionPrompt": "What flyer size do you need?",
+        "validationRules": {
+          "allowedValues": ["A6", "A5", "A4"],
+          "errorMessage": "Please choose A6, A5, or A4."
+        },
+        "quickChoices": [
+          {"label": "A6", "value": "A6"},
+          {"label": "A5", "value": "A5"},
+          {"label": "A4", "value": "A4"}
+        ]
+      },
+      {
+        "productId": "flyers-leaflets",
+        "attributeKey": "sides",
+        "label": "Printed sides",
+        "inputType": "select",
+        "wideInput": true,
+        "sortOrder": 2,
+        "required": true,
+        "questionPrompt": "Are the flyers printed single-sided or double-sided?",
+        "validationRules": {
+          "allowedValues": ["Single-sided", "Double-sided"],
+          "errorMessage": "Please choose Single-sided or Double-sided."
+        },
+        "quickChoices": [
+          {"label": "Single-sided", "value": "Single-sided"},
+          {"label": "Double-sided", "value": "Double-sided"}
+        ]
+      },
+      {
+        "productId": "flyers-leaflets",
+        "attributeKey": "stock",
+        "label": "Paper stock",
+        "inputType": "select",
+        "wideInput": true,
+        "sortOrder": 3,
+        "required": true,
+        "questionPrompt": "Which paper weight would you like for your flyers?",
+        "validationRules": {
+          "allowedValues": ["150gsm Silk", "170gsm Silk", "250gsm Silk", "350gsm Silk"],
+          "errorMessage": "Please choose a supported paper weight (150gsm, 170gsm, 250gsm, or 350gsm Silk)."
+        },
+        "quickChoices": [
+          {"label": "170gsm Silk (Recommended)", "value": "170gsm Silk"},
+          {"label": "250gsm Silk", "value": "250gsm Silk"},
+          {"label": "350gsm Silk", "value": "350gsm Silk"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "roller-banners",
+    "name": "Pull-up roller banners",
+    "singularName": "Pull-up roller banner",
+    "category": "Large Format & Display",
+    "vatRate": 0.20,
+    "active": true,
+    "defaultPaper": "220mic Greyback Stoplight PVC",
+    "keywords": ["banner", "banners", "roller banner", "roller banners", "pull-up", "pull up", "stand", "850mm"],
+    "stockRecommendation": null,
+    "rfcModelConfig": {
+      "baseExpectedHours": 3.5,
+      "minExpectedHours": 2.5,
+      "a4AdderHours": 0,
+      "p80AnchorHours": 6.5,
+      "p80BlendWeight": 0.35
+    },
+    "pricingConfig": {
+      "standardThresholdHours": 72,
+      "standardDeliveryAllowance": 20,
+      "protectedCostFloorMultiplier": 2,
+      "quoteRoundingStep": 5,
+      "compressionRoundingStep": 25,
+      "deadlineCompressionPoints": [
+        [0, 800],
+        [4, 500],
+        [6, 300],
+        [8, 175],
+        [12, 100],
+        [18, 0],
+        [23, 0]
+      ]
+    },
+    "attributes": [
+      {
+        "productId": "roller-banners",
+        "attributeKey": "size",
+        "label": "Banner width",
+        "inputType": "select",
+        "wideInput": true,
+        "sortOrder": 1,
+        "required": true,
+        "questionPrompt": "What banner width do you need (all 2000mm tall)?",
+        "validationRules": {
+          "allowedValues": ["800mm × 2000mm", "850mm × 2000mm", "1000mm × 2000mm"],
+          "errorMessage": "Please choose 800mm × 2000mm, 850mm × 2000mm, or 1000mm × 2000mm."
+        },
+        "quickChoices": [
+          {"label": "850mm × 2000mm (Standard)", "value": "850mm × 2000mm"},
+          {"label": "800mm × 2000mm", "value": "800mm × 2000mm"},
+          {"label": "1000mm × 2000mm (Wide)", "value": "1000mm × 2000mm"}
+        ]
+      },
+      {
+        "productId": "roller-banners",
+        "attributeKey": "cassette",
+        "label": "Cassette base",
+        "inputType": "select",
+        "wideInput": true,
+        "sortOrder": 2,
+        "required": true,
+        "questionPrompt": "Do you need a Standard twin-foot base or a Premium teardrop base?",
+        "validationRules": {
+          "allowedValues": ["Standard Base", "Premium Teardrop Base"],
+          "errorMessage": "Please select Standard Base or Premium Teardrop Base."
+        },
+        "quickChoices": [
+          {"label": "Standard Base", "value": "Standard Base"},
+          {"label": "Premium Teardrop Base", "value": "Premium Teardrop Base"}
+        ]
+      }
+    ]
+  }
+]

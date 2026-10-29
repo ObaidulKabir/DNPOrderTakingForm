@@ -1,0 +1,59 @@
+[
+  {
+    "supplierId": "hrj-media",
+    "supplierName": "HRJ Media",
+    "productId": "saddle-stitched-booklets",
+    "supported": true,
+    "excludedCombinations": [
+      {
+        "attributes": { "size": "A4", "orientation": "Landscape" },
+        "maxHours": 72,
+        "reason": "HRJ excluded: A4 Landscape cannot be produced on its machine. Manual alternative supplier confirmation required."
+      }
+    ],
+    "quantityLimitsByHours": [
+      {"maxHours": 12, "maxQty": 50, "choices": [5, 10, 25, 50]},
+      {"maxHours": 24, "maxQty": 100, "choices": [10, 25, 50, 75, 100]},
+      {"maxHours": 48, "maxQty": 200, "choices": [10, 25, 50, 75, 100, 125, 150, 200]},
+      {"maxHours": 120, "maxQty": 500, "choices": [10, 25, 50, 75, 100, 125, 150, 200, 250, 500]}
+    ],
+    "defaultQuantityChoices": [10, 25, 50, 75, 100, 125, 150, 200, 250, 500]
+  },
+  {
+    "supplierId": "printed-easy",
+    "supplierName": "PrintedEasy",
+    "productId": "saddle-stitched-booklets",
+    "supported": true,
+    "excludedCombinations": [],
+    "quantityLimitsByHours": [],
+    "defaultQuantityChoices": [25, 50, 100, 250, 500, 1000]
+  },
+  {
+    "supplierId": "hrj-media",
+    "supplierName": "HRJ Media",
+    "productId": "flyers-leaflets",
+    "supported": true,
+    "excludedCombinations": [],
+    "quantityLimitsByHours": [
+      {"maxHours": 12, "maxQty": 1000, "choices": [50, 100, 250, 500, 1000]},
+      {"maxHours": 24, "maxQty": 2500, "choices": [100, 250, 500, 1000, 2500]},
+      {"maxHours": 48, "maxQty": 5000, "choices": [100, 250, 500, 1000, 2500, 5000]},
+      {"maxHours": 120, "maxQty": 10000, "choices": [100, 250, 500, 1000, 2500, 5000, 10000]}
+    ],
+    "defaultQuantityChoices": [100, 250, 500, 1000, 2500, 5000]
+  },
+  {
+    "supplierId": "hrj-media",
+    "supplierName": "HRJ Media",
+    "productId": "roller-banners",
+    "supported": true,
+    "excludedCombinations": [],
+    "quantityLimitsByHours": [
+      {"maxHours": 12, "maxQty": 10, "choices": [1, 2, 3, 5, 10]},
+      {"maxHours": 24, "maxQty": 20, "choices": [1, 2, 4, 6, 10, 20]},
+      {"maxHours": 48, "maxQty": 40, "choices": [1, 2, 5, 10, 20, 40]},
+      {"maxHours": 120, "maxQty": 100, "choices": [1, 2, 5, 10, 25, 50, 100]}
+    ],
+    "defaultQuantityChoices": [1, 2, 4, 6, 10, 20]
+  }
+]

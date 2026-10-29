@@ -1,0 +1,9 @@
+[
+  {"max": 3, "gophr": 12.47, "dnp": 15, "label": "0–3 mi", "operationalBufferHours": 0.25},
+  {"max": 5, "gophr": 15.74, "dnp": 15, "label": "3–5 mi", "operationalBufferHours": 0.33},
+  {"max": 8, "gophr": 21.49, "dnp": 25, "label": "5–8 mi", "operationalBufferHours": 0.42},
+  {"max": 12, "gophr": 28.27, "dnp": 36, "label": "8–12 mi", "operationalBufferHours": 0.50},
+  {"max": 20, "gophr": 40.44, "dnp": 58, "label": "12–20 mi", "operationalBufferHours": 0.67},
+  {"max": 35, "gophr": 50.32, "dnp": 94, "label": "20–35 mi", "operationalBufferHours": 0.83},
+  {"max": 80, "gophr": 82.80, "dnp": 186, "label": "35–80 mi", "operationalBufferHours": 0.83}
+]

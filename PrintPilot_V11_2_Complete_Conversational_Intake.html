@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PrintPilot — Smart print sourcing</title>
+<style>
+:root{--ink:#101828;--muted:#667085;--line:#e4e7ec;--blue:#1769ff;--soft:#f6f8fc;--ok:#12b76a;--warn:#f79009}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:#fff}button,input,textarea,select{font:inherit}
+.wrap{max-width:1180px;margin:auto;padding:0 24px}.nav{height:74px;display:flex;align-items:center;border-bottom:1px solid #f0f2f5}.navin{width:100%;display:flex;justify-content:space-between;align-items:center}.brand{font-size:23px;font-weight:850;letter-spacing:-.6px}.brand b{color:var(--blue)}.nav small,.muted{color:var(--muted)}
+.hero{padding:76px 0 58px;background:radial-gradient(circle at 50% 10%,#eaf1ff 0,#fff 48%)}.pill{display:inline-block;padding:7px 12px;border-radius:999px;background:#eaf1ff;color:var(--blue);font-weight:800;font-size:12px;letter-spacing:.08em}.hero h1{font-size:58px;line-height:1.02;letter-spacing:-2.4px;margin:18px 0 14px;max-width:850px}.hero h1 span{color:var(--blue)}.lead{font-size:20px;color:var(--muted);max-width:760px;line-height:1.55}.ask{margin-top:34px;background:white;border:1px solid #dce3ef;border-radius:22px;box-shadow:0 18px 55px rgba(23,50,100,.12);padding:16px}.ask textarea{width:100%;min-height:115px;border:0;outline:0;resize:none;padding:14px;font-size:19px;line-height:1.45}.ask textarea::placeholder{color:#98a2b3}.askbar{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #eef1f5;padding:14px 8px 2px;gap:12px}.examples{color:var(--muted);font-size:13px}.primary{border:0;border-radius:12px;padding:13px 20px;background:var(--blue);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 7px 18px rgba(23,105,255,.22)}.primary:disabled{opacity:.45;cursor:not-allowed}.trust{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:28px 0 58px}.trust div{padding:18px;border:1px solid var(--line);border-radius:15px}.trust strong{display:block;margin-bottom:5px}.trust span{color:var(--muted);font-size:14px}
+#appView{display:none;min-height:100vh;background:#f8fafc}.appnav{background:#fff;border-bottom:1px solid var(--line);padding:17px 0}.appnav .wrap{display:flex;align-items:center;justify-content:space-between}.back{border:0;background:transparent;color:var(--muted);cursor:pointer}.appgrid{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:24px;padding:34px 24px 60px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 4px 16px rgba(16,24,40,.04)}.chat{padding:22px;min-height:690px;display:flex;flex-direction:column}.chathead{border-bottom:1px solid var(--line);padding-bottom:18px}.chathead h2{margin:0 0 6px}.chathead p{margin:0;color:var(--muted);font-size:14px}.messages{flex:1;padding:20px 0;overflow:auto;max-height:540px}.msg{max-width:78%;padding:13px 15px;border-radius:16px;margin:10px 0;line-height:1.48;white-space:pre-wrap;font-size:14px}.bot{background:#f1f5fb;border-bottom-left-radius:5px}.user{background:var(--blue);color:#fff;margin-left:auto;border-bottom-right-radius:5px}.choices{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.choices button{border:1px solid #cfd9ea;background:#fff;color:#344054;border-radius:11px;padding:9px 12px;font-size:13px;cursor:pointer}.choices button:hover{border-color:#8fb4ff;background:#f7f9ff}.composer{display:flex;gap:10px;border-top:1px solid var(--line);padding-top:16px}.composer input{flex:1;border:1px solid #d0d5dd;border-radius:12px;padding:13px 14px;outline:0}.composer input:focus{border-color:#8fb4ff;box-shadow:0 0 0 3px #eaf1ff}
+.attach{display:none;border-top:1px solid #f0f2f5;padding-top:12px;margin-top:12px}.attach label{display:inline-block;border:1px dashed #98a2b3;border-radius:10px;padding:10px 13px;font-size:13px;cursor:pointer}.attach span{font-size:12px;color:var(--muted);margin-left:8px}
+.side{padding:22px;height:max-content;position:sticky;top:20px}.side h3{margin-top:0}.progress{height:8px;background:#eef2f6;border-radius:99px;overflow:hidden;margin:12px 0 20px}.progress i{display:block;height:100%;width:0;background:var(--blue);transition:.3s}.spec{display:flex;justify-content:space-between;gap:15px;padding:10px 0;border-bottom:1px solid #f0f2f5;font-size:13px}.spec span:first-child{color:var(--muted)}.spec strong{text-align:right}.missing{margin-top:16px;padding:12px;border-radius:12px;background:#fff8e7;color:#7a4b00;font-size:12px}.complete{background:#ecfdf3;color:#067647}
+.quote{display:none;margin-top:18px;border-top:1px solid var(--line);padding-top:18px}.quote .deadline{font-size:13px;color:var(--muted)}.quote .deadline b{color:var(--ink)}.price{font-size:36px;font-weight:900;letter-spacing:-1.3px;margin:8px 0 0}.price small{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0}.quote .primary{width:100%;margin-top:13px}.checking{display:none;margin-top:18px;padding:14px;border-radius:12px;background:#fff8e7;color:#7a4b00;font-size:13px;line-height:1.5}
+.success{display:none;text-align:center;padding:65px 24px}.success .tick{width:64px;height:64px;border-radius:50%;background:#dcfae6;color:var(--ok);display:grid;place-items:center;font-size:30px;margin:0 auto 20px}.success h2{font-size:32px;margin:0 0 12px}.success p{color:var(--muted);max-width:600px;margin:0 auto 22px;line-height:1.6}.ref{display:inline-block;background:#f2f4f7;border-radius:10px;padding:10px 14px;font-weight:800}
+details.debug{margin-top:18px;font-size:11px;color:#98a2b3}details.debug summary{cursor:pointer}.debugbox{margin-top:8px;background:#101828;color:#d0d5dd;padding:11px;border-radius:9px;line-height:1.55}
+@media(max-width:800px){.hero h1{font-size:42px}.trust{grid-template-columns:1fr 1fr}.appgrid{grid-template-columns:1fr}.side{position:static}.hero{padding-top:50px}}@media(max-width:520px){.trust{grid-template-columns:1fr}.hero h1{font-size:36px}.askbar{align-items:flex-start;flex-direction:column}.primary{width:100%}}
+
+.spec.editable{align-items:center;gap:10px}
+.spec.editable strong{min-width:0}
+.spec-edit{width:155px;max-width:52%;padding:7px 8px;border:1px solid #d0d5dd;border-radius:8px;background:#fff;color:#101828;font-size:12px;font-weight:650}
+.spec-edit:focus{outline:2px solid #dbe7ff;border-color:#5b8def}
+.spec-edit.wide{width:190px}
+.spec-note{font-size:10px;color:#98a2b3;margin-top:5px;text-align:right}
+</style></head><body>
+<div id="homeView">
+<header class="nav"><div class="wrap navin"><div><div class="brand">Print<b>Pilot</b></div><small>Smart print sourcing</small></div><div class="muted" style="font-size:14px">Printing made simple.</div></div></header>
+<main class="hero"><div class="wrap"><span class="pill">AI-ASSISTED PRINT SOURCING</span><h1>Tell us what you need printed. <span>We'll handle the rest.</span></h1><p class="lead">No complicated print forms. Describe your job in plain English and we'll ask only the questions needed to prepare an accurate quotation.</p>
+<div class="ask"><textarea id="initialPrompt" placeholder="Try: I need 25 A5 booklets, around 24 pages, delivered tomorrow morning.">100 copies, A4 portrait, 20 pages, 350gsm cover, 170gsm inner, 39 Solent House, E1 3NL, 3.4 miles and Artwork Ready. Needed by tomorrow 10 am</textarea><div class="askbar"><div class="examples">This demo: A4 & A5 saddle-stitched booklets</div><button class="primary" id="startBtn" type="button" onclick="start();return false;">Find my print option →</button></div></div></div></main>
+<section><div class="wrap trust"><div><strong>⚡ Built for deadlines</strong><span>Your exact delivery time drives availability and price.</span></div><div><strong>✓ Clear specifications</strong><span>We confirm important production details before you pay.</span></div><div><strong>◎ One point of contact</strong><span>No need to contact multiple printers yourself.</span></div><div><strong>£ One clear price</strong><span>One price for the delivery commitment shown.</span></div></div></section>
+</div>
+
+<div id="appView">
+<div class="appnav"><div class="wrap"><div class="brand">Print<b>Pilot</b></div><button class="back" onclick="location.reload()">← Start again</button></div></div>
+<div class="wrap appgrid">
+<section class="card chat"><div class="chathead"><h2>Let's get your print job ready</h2><p>Answer naturally — we'll only ask what is still needed.</p></div>
+<div class="messages" id="messages"></div><div id="success" class="success"><div class="tick">✓</div><h2>Your order is ready.</h2><p>This demo would now take payment and create the fulfilment workflow against the confirmed delivery commitment.</p><span class="ref">Demo order PP-BOOKLET</span></div>
+<div class="attach" id="attach"><label>📎 Upload artwork<input id="file" type="file" accept=".pdf,.jpg,.jpeg,.png" hidden></label><span id="fileText">PDF preferred</span></div>
+<div class="composer" id="composer"><input id="replyInput" placeholder="Type your answer…" autocomplete="off"><button class="primary" id="sendBtn" type="button" onclick="send();return false;">Send</button></div></section>
+
+<aside class="card side"><h3>Your print specification</h3><div class="muted" style="font-size:13px" id="progressText">Collecting details…</div><div class="progress"><i id="progressBar"></i></div><div id="specList"></div><div class="missing" id="missingBox"></div>
+<div class="checking" id="checking"><strong>We're checking this deadline.</strong><br>This turnaround needs confirmation before we can take payment.</div>
+<div class="quote" id="quote"><div class="deadline">Delivery commitment<br><b id="commitment"></b></div><div class="price" id="price"></div><button class="primary" id="payBtn" type="button" onclick="completePayment();return false;">Confirm & pay</button><div class="muted" style="font-size:11px;line-height:1.5;margin-top:9px">The displayed total is calculated for the exact delivery commitment above. Booklets carry no VAT in this quotation.</div></div>
+<details class="debug"><summary>Staging diagnostics</summary><div class="debugbox" id="debug"></div></details>
+</aside></div></div>
+
+<script>
+const data={product:'Saddle-stitched booklets',quantity:null,size:null,pages:null,cover:null,inner:null,paper:'Silk / Matt',orientation:null,artwork:null,file:null,postcode:null,address:null,hotel:null,hotelName:null,deadline:null,devMiles:null};
+let current=null;
+const $=s=>document.querySelector(s), messages=$('#messages');
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function msg(t,type='bot'){let d=document.createElement('div');d.className='msg '+type;d.innerHTML=t;messages.appendChild(d);messages.scrollTop=messages.scrollHeight}
+function choices(a){let d=document.createElement('div');d.className='choices';a.forEach(([label,val])=>{let b=document.createElement('button');b.textContent=label;b.onclick=()=>{d.remove();msg(label,'user');choice(val)};d.appendChild(b)});messages.appendChild(d)}
+function parseDeadline(t){t=t.toLowerCase().trim();let now=new Date(),d=new Date(now);if(/tomorrow/.test(t))d.setDate(d.getDate()+1);else if(/today|tonight/.test(t)){}else return null;let m=t.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/);if(m){let h=+m[1],mi=+(m[2]||0);if(m[3]=='pm'&&h<12)h+=12;if(m[3]=='am'&&h===12)h=0;d.setHours(h,mi,0,0)}else if(/morning/.test(t))d.setHours(11,0,0,0);else if(/afternoon/.test(t))d.setHours(16,0,0,0);else if(/evening/.test(t))d.setHours(19,0,0,0);else return null;return d}
+function extract(t){
+ if(/\blandscape\b/i.test(t))data.orientation='Landscape';else if(/\bportrait\b/i.test(t))data.orientation='Portrait';
+ let m=t.match(/\b(A4|A5)\b/i); if(m)data.size=m[1].toUpperCase();
+ m=t.match(/(\d{1,3})\s*(?:page|pages|pp)\b/i); if(m)data.pages=+m[1];
+ // Quantity: "100 copies", "100 booklets", or natural shorthand such as "100 x A4" / "100xA5".
+ m=t.match(/\b(\d{1,4})\s*(?:copies|copy|booklets|booklet|brochures|brochure)\b/i);
+ if(!m)m=t.match(/\b(\d{1,4})\s*[x×]\s*(?=A[45]\b)/i);
+ if(m)data.quantity=+m[1];
+ // Stock: understand "350 gsm cover, 170 gsm inner" and close natural variants.
+ let c=t.match(/\b(\d{2,3})\s*gsm\s*(?:silk\s*)?(?:cover|covers)\b/i);
+ let inn=t.match(/\b(\d{2,3})\s*gsm\s*(?:silk\s*)?(?:inner|inners|inside|inner\s*pages?)\b/i);
+ if(c)data.cover=c[1]+'gsm Silk';
+ if(inn)data.inner=inn[1]+'gsm Silk';
+ // Artwork readiness.
+ if(/\bartwork\b[^.!?]{0,30}\b(?:is\s+)?(?:print[- ]?ready|ready|supplied|complete|finished)\b/i.test(t)||/\b(?:print[- ]?ready|ready)\s+artwork\b/i.test(t))data.artwork='Ready';
+ if(/\bartwork\b[^.!?]{0,30}\b(?:not\s+ready|isn['’]?t\s+ready|not\s+finished)\b/i.test(t))data.artwork='Not ready';
+ // UK postcode.
+ let pc=t.match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i);
+ if(pc)data.postcode=pc[0].toUpperCase().replace(/\s+/g,' ').replace(/([A-Z\d])\s*(\d[A-Z]{2})$/,'$1 $2');
+ // Delivery address: capture natural text after "deliver/delivery to" up to the postcode,
+ // keeping the postcode in its own field. Example: "deliver to 39 Solent House, E1 3NL".
+ if(pc){
+   const beforePc=t.slice(0,pc.index);
+   // First prefer explicit delivery language.
+   let am=beforePc.match(/(?:deliver(?:y)?\s+(?:to|at)|delivery\s+address\s+(?:is|:)?|send\s+(?:to|at)|ship\s+(?:to|at))\s+(.+?)\s*,?\s*$/i);
+   if(am){
+     let a=am[1].trim().replace(/[,.\s]+$/,'');
+     if(a)data.address=a;
+   }else{
+     // Otherwise use the comma-separated phrase immediately before a recognised UK postcode.
+     // This handles "... 170gsm inner, 39 Solent House, E1 3NL ..."
+     const parts=beforePc.split(',').map(x=>x.trim()).filter(Boolean);
+     let candidate=parts.length?parts[parts.length-1]:'';
+     // A delivery-address fragment normally contains a building/house number or common address word.
+     // Reject obvious print-spec fragments.
+     const looksAddress=/\b\d+[A-Za-z]?\b/.test(candidate)||
+       /\b(?:house|road|rd|street|st|avenue|ave|lane|ln|close|court|way|drive|dr|place|pl|building|tower|flat|unit)\b/i.test(candidate);
+     const looksPrintSpec=/\b(?:gsm|pages?|pp|copies|copy|booklets?|cover|inner|A4|A5)\b/i.test(candidate);
+     if(candidate&&looksAddress&&!looksPrintSpec)data.address=candidate;
+   }
+ }
+ // Staging mileage: "3.4 miles away", "3.4 mi", "mileage 3.4".
+ let miles=t.match(/\b(\d+(?:\.\d+)?)\s*(?:miles?|mi)\b/i);
+ if(!miles)miles=t.match(/\bmileage\s*(?:is|=|:)?\s*(\d+(?:\.\d+)?)/i);
+ if(miles)data.devMiles=+miles[1];
+ let d=parseDeadline(t); if(d)data.deadline=d;
+}
+function hleft(){return data.deadline?(data.deadline-Date.now())/36e5:null}
+function maxQty(h){if(h<=12)return 50;if(h<=24)return 100;if(h<=48)return 200;if(h<=120)return 500;return Infinity}
+function validQty(){let h=hleft();return !data.quantity||!h||data.quantity<=maxQty(h)}
+function next(){
+ render();
+ if(!data.size)return ask('size',"What finished size do you need?",[['A5','A5'],['A4','A4']]);
+ if(!data.orientation)return ask('orientation','Is the finished booklet portrait or landscape?', [['Portrait','Portrait'],['Landscape','Landscape']]);
+ if(!data.pages)return ask('pages',"How many pages are there <strong>including the cover</strong>? Saddle-stitched booklets are normally produced in multiples of 4.",[['12 pages',12],['16 pages',16],['20 pages',20],['24 pages',24],['32 pages',32],['48 pages',48],['Type another','typedPages']]);
+ if(!data.deadline)return ask('deadline',"What is the <strong>latest</strong> you need these delivered by? Please give me the day and time, for example “tomorrow by 11am”.");
+ if(!data.quantity)return askQty();
+ if(!validQty()){let h=hleft(),mx=maxQty(h);data.quantity=null;msg(`With approximately <strong>${h.toFixed(1)} hours</strong> available, this demo can automatically quote up to <strong>${mx} copies</strong>. Please choose a quantity within that range.`);return askQty()}
+ if(data.artwork===null){current='artwork';msg("Is your artwork print-ready?");choices([['Yes — ready','ready'],['Not yet','notready']]);return}
+ if(data.artwork==='Ready'&&!data.file){$('#attach').style.display='block'}
+ if(!data.cover||!data.inner){current='stock';msg("For this booklet, our recommended specification is <strong>350gsm silk cover with 170gsm silk inner pages</strong>. Would you like to use that?");choices([['Yes — use recommended','recommended'],['Choose another paper','otherstock']]);return}
+ if(!data.postcode)return ask('postcode',"What is the delivery postcode?");
+ if(!data.address)return ask('manualAddress',"What is the full delivery address? Please type the building number and street or building name.");
+ if(data.devMiles==null)return ask('mileage',"Approximately how many miles is the delivery address from the production/dispatch point? This is a staging estimate; enter a number such as 3.4.");
+ if(data.hotel===null){current='hotel';msg("Is the delivery going to a hotel?");choices([['No','nohotel'],['Yes','hotel']]);return}
+ if(data.hotel===true&&!data.hotelName)return ask('hotelName',"What is the hotel name? We'll use the delivery address and access requirements when checking fulfilment.");
+ quote();
+}
+function ask(k,q,c=null){current=k;msg(q);if(c)choices(c)}
+function askQty(){let h=hleft(),mx=h?maxQty(h):Infinity,arr=h<=12?[5,10,25,50]:h<=24?[10,25,50,75,100]:h<=48?[10,25,50,75,100,125,150,200]:[10,25,50,75,100,125,150,200,250,500];current='quantity';msg("How many copies do you need?");choices(arr.filter(x=>x<=mx).map(x=>[String(x),x]).concat([['Custom quantity','customQty']]))}
+
+function showAddressChoices(){
+ let pc=data.postcode||'';
+ // Staging simulation of a postcode-address lookup. Production should call an address provider.
+ choices([
+  ['1 High Street, '+pc,'addr:1 High Street, '+pc],
+  ['12 High Street, '+pc,'addr:12 High Street, '+pc],
+  ['25 High Street, '+pc,'addr:25 High Street, '+pc],
+  ['Enter address manually','manualAddress']
+ ])
+}
+function choice(v){
+ if(current==='address'){
+   if(v==='manualAddress'){current='manualAddress';msg("Type the full delivery address below.");return}
+   data.address=v.replace(/^addr:/,'');
+ }
+ else if(current==='size')data.size=v;
+ else if(current==='pages'){if(v==='typedPages'){msg("Type the page count below.");return}data.pages=v}
+ else if(current==='orientation'){data.orientation=v==='Landscape'?'Landscape':'Portrait'}
+ else if(current==='quantity'){if(v==='customQty'){msg("Type the quantity below.");return}data.quantity=v}
+ else if(current==='artwork'){data.artwork=v==='ready'?'Ready':'Not ready'}
+ else if(current==='stock'){if(v==='recommended'){data.cover='350gsm Silk';data.inner='170gsm Silk'}else{current='customstock';msg("Type the cover and inner stock you would like, for example “250gsm silk cover, 170gsm silk inner”.");return}}
+ else if(current==='hotel'){data.hotel=v==='hotel';if(!data.hotel)data.hotelName=null}
+ current=null;render();next()
+}
+function send(){let t=$('#replyInput').value.trim();if(!t)return;msg(esc(t),'user');$('#replyInput').value='';
+ if(current==='manualAddress'){data.address=t}
+ else if(current==='deadline'){let d=parseDeadline(t);if(!d){msg("Please give me an exact latest time, such as <strong>tomorrow by 11am</strong>. This is important because the price and availability are calculated against that delivery commitment.");return}data.deadline=d}
+ else if(current==='mileage'){let n=Number(t.replace(/\s*(miles?|mi)\s*$/i,'').trim());if(!Number.isFinite(n)||n<0||n>1000){msg('Please enter an approximate mileage, such as 3.4.');return;}data.devMiles=n}
+ else if(current==='postcode'){let pc=t.match(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/i);if(!pc){msg("Please enter a UK delivery postcode.");return}data.postcode=pc[0].toUpperCase()}
+ else if(current==='hotelName')data.hotelName=t;
+ else if(current==='orientation'){if(!/\b(portrait|landscape)\b/i.test(t)){msg('Please choose Portrait or Landscape.');return;}data.orientation=/landscape/i.test(t)?'Landscape':'Portrait';}
+ else if(current==='pages'){let n=+t.match(/\d+/)?.[0];if(!n||n<8||n>60||n%4){msg("For this demo, please use a page count from 8–60 in multiples of 4.");return}data.pages=n}
+ else if(current==='quantity'){let n=+t.replace(/\D/g,'');if(!n){msg("Please enter the number of copies.");return}let mx=maxQty(hleft());if(n>mx){msg(`That exceeds the automatic quantity limit of <strong>${mx}</strong> for the time available. A larger quantity would need a manual availability check.`);return}data.quantity=n}
+ else if(current==='customstock'){let a=t.match(/(\d{3})\s*gsm.*cover/i),b=t.match(/(\d{3})\s*gsm.*inner/i);if(!a||!b){msg("Please include both, for example <strong>250gsm silk cover, 170gsm silk inner</strong>.");return}data.cover=a[1]+'gsm Silk';data.inner=b[1]+'gsm Silk'}
+ else {extract(t)}
+ current=null;render();next()
+}
+$('#file').onchange=e=>{let f=e.target.files[0];if(!f)return;data.file=f.name;data.artwork='Ready';$('#fileText').textContent='✓ '+f.name;$('#attach').style.display='none';msg("Artwork uploaded: <strong>"+esc(f.name)+"</strong>.");current=null;next()}
+function isWeekend(d){let x=d.getDay();return x===0||x===6}
+function minutesNow(){let n=new Date();return n.getHours()*60+n.getMinutes()}
+function peRoute(){
+ let now=new Date(), dl=data.deadline, mins=minutesNow(), day=now.getDay();
+ // PE has 13:00 and 16:00 production cut-offs. Customer payment must clear 30 minutes earlier.
+ // For this first routing model we use the later 16:00 route where eligible.
+ let customerCutoff=15*60+30, orderCutoff=16*60;
+ let todayEligible=day>=1&&day<=5&&mins<=customerCutoff;
+ let tomorrow=new Date(now);tomorrow.setDate(now.getDate()+1);
+ // PE standard dispatch does not create Saturday/Sunday delivery.
+ let standardDeliveryDay=new Date(now);standardDeliveryDay.setDate(now.getDate()+1);
+ while(isWeekend(standardDeliveryDay))standardDeliveryDay.setDate(standardDeliveryDay.getDate()+1);
+ standardDeliveryDay.setHours(18,0,0,0);
+ let standardFeasible=todayEligible && dl>=standardDeliveryDay;
+ // Same-evening own-courier collection route: job commonly ready around 18:00 after valid cutoff order.
+ // Keep conservative: only offer where deadline is after 20:00 same day and customer paid before 15:30.
+ let ownCollectReady=new Date(now);ownCollectReady.setHours(18,30,0,0);
+ let ownCourierFeasible=todayEligible && dl.toDateString()===now.toDateString() && dl>=new Date(ownCollectReady.getTime()+90*60000);
+ return {supplier:'PrintedEasy',eligible:standardFeasible||ownCourierFeasible,
+   route:ownCourierFeasible?'PE production → own courier collection':'PE standard production/delivery',
+   reason:!todayEligible?(day===0||day===6?'PE ordering route closed for weekend staging rule':'Customer payment cutoff 15:30 has passed'):(standardFeasible?'PE cutoff and delivery calendar fit deadline':ownCourierFeasible?'PE cutoff fits + same-evening collection route fits':'PE delivery timing does not fit deadline'),
+   cutoff:'Customer pay by 15:30 · supplier order by 16:00',confidence:'High (rule-based demo)'};
+}
+function hrjRoute(){
+ let now=new Date(),dl=data.deadline,h=hleft();
+ // HRJ available every day; collection normally only after opening around 11:00.
+ // Safest normal delivery promise is about 13:00 onward on completion day.
+ let tomorrow=new Date(now);tomorrow.setDate(now.getDate()+1);
+ let dlHour=dl.getHours()+dl.getMinutes()/60;
+ let earlyTomorrow=dl.toDateString()===tomorrow.toDateString() && dlHour<13;
+ if(earlyTomorrow){
+   // Normal morning collection is unsafe. Route requires production/collection tonight then hold + AM delivery.
+   return {supplier:'HRJ Media',eligible:h>=8,route:'HRJ production → collect tonight → held overnight → morning courier delivery',
+    reason:'Deadline is before the safe ~13:00 next-day HRJ collection/delivery window; overnight collection is required',
+    cutoff:'Flexible / manual production window',confidence:h>=10?'Medium–high':'Medium',overnight:true};
+ }
+ return {supplier:'HRJ Media',eligible:h>=4,route:'HRJ production → courier collection → direct delivery',
+  reason:'HRJ 7-day availability and deadline is within a safe post-opening delivery window',
+  cutoff:'Flexible / manual production window',confidence:h>=8?'High':'Medium',overnight:false};
+}
+function selectSupplier(){
+ let pe=peRoute(),hrj=hrjRoute();
+ // PE is first choice when its rule-set genuinely fits. Otherwise HRJ.
+ if(pe.eligible)return {selected:pe,alternatives:[hrj]};
+ if(hrj.eligible)return {selected:hrj,alternatives:[pe]};
+ return {selected:null,alternatives:[pe,hrj]};
+}
+function feasibility(){
+ let h=hleft(),q=data.quantity;
+ if(h<=0)return {ok:false,why:'Deadline has passed',live:liveResilience()};
+ if(q>maxQty(h))return {ok:false,why:'Quantity exceeds validated window',live:liveResilience()};
+ let live=liveResilience();
+ if(live.status==='RED')return {ok:false,why:'Live RFC/route engine: RED — human intervention required',live};
+ if(live.status==='AMBER')return {ok:false,why:'Live RFC/route engine: AMBER — human review required before payment',live};
+ if(live.status==='WAITING')return {ok:false,why:'Exact deadline still required',live};
+ return {ok:true,why:'Live RFC/route engine: GREEN',live};
+}
+function isOutOfHoursRoute(route){
+ let now=new Date(),hr=now.getHours()+now.getMinutes()/60;
+ // Flat DNP odd-hour premium. This is a business cost, not a percentage uplift.
+ return !!(route&&route.overnight) || hr>=20 || hr<8 || (data.deadline&&(data.deadline.getHours()<9||data.deadline.getHours()>=21));
+}
+// ---- HRJ PRICING MODEL V2 ----
+// Embedded controlled BO2 observations. Predicts negotiated settlement, NOT an HRJ tariff.
+const HRJ_PRICING_V3_DATA=[{"order_id":"14697","vendor_due":55.0,"qty":5.0,"size2":"A5","pages":16.0,"hours_to_deadline":-1.551388888888889,"paid_at":"2024-12-07 19:33:05","source":"BO2","urgency_reliable":false},{"order_id":"15688","vendor_due":35.0,"qty":1.0,"size2":"A4","pages":16.0,"hours_to_deadline":-12.568333333333332,"paid_at":"2025-03-16 12:33:06","source":"BO2","urgency_reliable":false},{"order_id":"15948","vendor_due":140.0,"qty":10.0,"size2":"A4","pages":42.0,"hours_to_deadline":15.442222222222222,"paid_at":"2025-04-15 18:03:28","source":"BO2","urgency_reliable":true},{"order_id":"17078","vendor_due":45.0,"qty":1.0,"size2":"A4","pages":44.0,"hours_to_deadline":13.02111111111111,"paid_at":"2025-08-17 20:29:44","source":"BO2","urgency_reliable":true},{"order_id":"17242","vendor_due":95.0,"qty":25.0,"size2":"A4","pages":8.0,"hours_to_deadline":12.251666666666669,"paid_at":"2025-09-09 20:59:54","source":"BO2","urgency_reliable":true},{"order_id":"17381","vendor_due":445.0,"qty":125.0,"size2":"A4","pages":20.0,"hours_to_deadline":8.765555555555556,"paid_at":"2025-09-25 13:44:04","source":"BO2","urgency_reliable":true},{"order_id":"17745","vendor_due":50.0,"qty":10.0,"size2":"A5","pages":16.0,"hours_to_deadline":32.93611111111111,"paid_at":"2025-11-15 15:02:50","source":"BO2","urgency_reliable":true},{"order_id":"17768","vendor_due":445.0,"qty":50.0,"size2":"A4","pages":60.0,"hours_to_deadline":14.734166666666669,"paid_at":"2025-11-18 19:45:57","source":"BO2","urgency_reliable":true},{"order_id":"17952","vendor_due":145.0,"qty":50.0,"size2":"A5","pages":12.0,"hours_to_deadline":14.75611111111111,"paid_at":"2025-12-29 18:14:38","source":"BO2","urgency_reliable":true},{"order_id":"18381","vendor_due":160.0,"qty":50.0,"size2":"A5","pages":40.0,"hours_to_deadline":20.614166666666662,"paid_at":"2026-03-21 20:53:09","source":"BO2","urgency_reliable":true},{"order_id":"18434","vendor_due":150.0,"qty":100.0,"size2":"A5","pages":20.0,"hours_to_deadline":16.900833333333335,"paid_at":"2026-04-01 20:05:57","source":"BO2","urgency_reliable":true},{"order_id":"18606","vendor_due":80.0,"qty":40.0,"size2":"A5","pages":8.0,"hours_to_deadline":32.77,"paid_at":"2026-04-25 00:13:48","source":"BO2","urgency_reliable":true},{"order_id":"18746","vendor_due":90.0,"qty":50.0,"size2":"A4","pages":12.0,"hours_to_deadline":48.08055555555556,"paid_at":"2026-05-12 17:25:10","source":"BO2","urgency_reliable":true},{"order_id":"18962","vendor_due":60.0,"qty":5.0,"size2":"A4","pages":32.0,"hours_to_deadline":39.157222222222224,"paid_at":"2026-06-07 06:50:34","source":"BO2","urgency_reliable":true},{"order_id":"19015","vendor_due":160.0,"qty":25.0,"size2":"A4","pages":24.0,"hours_to_deadline":8.742222222222223,"paid_at":"2026-06-12 02:15:28","source":"BO2","urgency_reliable":true},{"order_id":"19458","vendor_due":250.0,"qty":50.0,"size2":"A5","pages":46.0,"hours_to_deadline":28.817777777777778,"paid_at":"2026-08-29 19:09:56","source":"BO2","urgency_reliable":true},{"order_id":"b17294.1","vendor_due":140.0,"qty":60.0,"size2":"A4","pages":8.0,"hours_to_deadline":5.546388888888889,"paid_at":"2025-09-16 13:12:13","source":"BO2","urgency_reliable":true},{"order_id":"b17294.2","vendor_due":120.0,"qty":30.0,"size2":"A4","pages":8.0,"hours_to_deadline":45.00527777777778,"paid_at":"2025-10-06 14:59:41","source":"BO2","urgency_reliable":true},{"order_id":"b17995.1","vendor_due":280.0,"qty":40.0,"size2":"A4","pages":40.0,"hours_to_deadline":69.31138888888889,"paid_at":"2026-01-11 20:41:19","source":"BO2","urgency_reliable":true},{"order_id":"b18034","vendor_due":50.0,"qty":2.0,"size2":"A5","pages":32.0,"hours_to_deadline":10.010555555555555,"paid_at":"2026-01-18 10:59:22","source":"BO2","urgency_reliable":true},{"order_id":"b19014.1","vendor_due":650.0,"qty":175.0,"size2":"A4","pages":36.0,"hours_to_deadline":12.028888888888888,"paid_at":"2026-06-12 00:58:16","source":"BO2","urgency_reliable":true},{"order_id":"b19014.2","vendor_due":1100.0,"qty":300.0,"size2":"A4","pages":36.0,"hours_to_deadline":16.495555555555555,"paid_at":"2026-06-12 01:00:16","source":"BO2","urgency_reliable":true},{"order_id":"b19305.1","vendor_due":200.0,"qty":50.0,"size2":"A4","pages":12.0,"hours_to_deadline":9.034444444444444,"paid_at":"2026-07-19 20:27:56","source":"BO2","urgency_reliable":true},{"order_id":"10296","vendor_due":410.0,"qty":100.0,"size2":"A5","pages":36.0,"hours_to_deadline":22.786944444444444,"paid_at":"2023-11-19 14:12:47","source":"BO1","urgency_reliable":true},{"order_id":"11908.2","vendor_due":225.0,"qty":100.0,"size2":"A4","pages":20.0,"hours_to_deadline":24.0,"paid_at":"2024-05-16 13:46:41","source":"BO1","urgency_reliable":false},{"order_id":"12327","vendor_due":300.0,"qty":30.0,"size2":"A5","pages":100.0,"hours_to_deadline":1.7005555555555556,"paid_at":"2024-06-12 22:16:58","source":"BO1","urgency_reliable":true},{"order_id":"12361","vendor_due":65.0,"qty":1.0,"size2":"A4","pages":60.0,"hours_to_deadline":24.0,"paid_at":"2024-06-15 20:01:34","source":"BO1","urgency_reliable":false},{"order_id":"12479","vendor_due":195.0,"qty":60.0,"size2":"A4","pages":20.0,"hours_to_deadline":19.171666666666667,"paid_at":"2024-06-24 22:49:42","source":"BO1","urgency_reliable":true},{"order_id":"3860.8","vendor_due":115.0,"qty":50.0,"size2":"A4","pages":8.0,"hours_to_deadline":24.0,"paid_at":"2022-04-21 17:11:08","source":"BO1","urgency_reliable":false},{"order_id":"5137","vendor_due":350.0,"qty":25.0,"size2":"A4","pages":68.0,"hours_to_deadline":24.0,"paid_at":"2022-04-25 16:23:34","source":"BO1","urgency_reliable":false},{"order_id":"5268","vendor_due":195.0,"qty":50.0,"size2":"A4","pages":16.0,"hours_to_deadline":24.0,"paid_at":"2022-05-13 18:35:59","source":"BO1","urgency_reliable":false},{"order_id":"7610","vendor_due":175.0,"qty":25.0,"size2":"A5","pages":28.0,"hours_to_deadline":24.0,"paid_at":"2023-02-14 10:22:38","source":"BO1","urgency_reliable":false},{"order_id":"8526","vendor_due":35.0,"qty":1.0,"size2":"A4","pages":20.0,"hours_to_deadline":24.0,"paid_at":"2023-05-29 19:48:16","source":"BO1","urgency_reliable":false},{"order_id":"8636","vendor_due":35.0,"qty":1.0,"size2":"A5","pages":16.0,"hours_to_deadline":24.0,"paid_at":"2023-06-08 00:00:00","source":"BO1","urgency_reliable":false},{"order_id":"b1089","vendor_due":200.0,"qty":50.0,"size2":"A5","pages":16.0,"hours_to_deadline":24.0,"paid_at":"2022-07-04 13:54:08","source":"BO1","urgency_reliable":false},{"order_id":"b1175","vendor_due":375.0,"qty":50.0,"size2":"A4","pages":36.0,"hours_to_deadline":24.0,"paid_at":"2022-12-11 08:52:52","source":"BO1","urgency_reliable":false},{"order_id":"b1175.3","vendor_due":225.0,"qty":30.0,"size2":"A4","pages":36.0,"hours_to_deadline":24.0,"paid_at":"2022-12-11 18:22:29","source":"BO1","urgency_reliable":false}];
+
+function hrjUrgencyBucket(h){
+ if(h==null||!isFinite(h))return 2;
+ if(h<=6)return 0;if(h<=12)return 1;if(h<=24)return 2;if(h<=48)return 3;return 4;
+}
+function hrjV2Distance(r,q){
+ const qd=Math.abs(Math.log((r.qty+5)/(q.qty+5)));
+ const pd=Math.abs(r.pages-q.pages)/Math.max(q.pages,12);
+ const sd=r.size2===q.size?0:.85;
+ const ud=r.urgency_reliable===false?0:Math.abs(hrjUrgencyBucket(r.hours_to_deadline)-hrjUrgencyBucket(q.hours_to_deadline))*.12;
+ return 1.35*qd+2.25*pd+sd+ud;
+}
+function hrjWeightedQuantile(rows,p){
+ const a=rows.filter(r=>r.weight>0).slice().sort((x,y)=>x.vendor_due-y.vendor_due);
+ const total=a.reduce((z,r)=>z+r.weight,0); let c=0;
+ for(const r of a){c+=r.weight;if(c>=p*total)return r.vendor_due;}
+ return a.length?a[a.length-1].vendor_due:0;
+}
+function solveLinear(A,b){
+ const n=b.length,M=A.map((r,i)=>r.slice().concat([b[i]]));
+ for(let i=0;i<n;i++){
+   let k=i;for(let j=i+1;j<n;j++)if(Math.abs(M[j][i])>Math.abs(M[k][i]))k=j;
+   [M[i],M[k]]=[M[k],M[i]];let d=M[i][i];if(Math.abs(d)<1e-10)continue;
+   for(let j=i;j<=n;j++)M[i][j]/=d;
+   for(let k2=0;k2<n;k2++)if(k2!==i){let f=M[k2][i];for(let j=i;j<=n;j++)M[k2][j]-=f*M[i][j];}
+ }
+ return M.map(r=>r[n]);
+}
+function hrjStructuralEstimate(rows,q){
+ // Weighted ridge regression on log settlement: quantity, pages, A4/A5 and deadline context.
+ const P=5, A=Array.from({length:P},()=>Array(P).fill(0)), B=Array(P).fill(0);
+ for(const r of rows){
+   const x=[1,Math.log1p(r.qty),Math.log(Math.max(r.pages,4)/12),r.size2==='A4'?1:0,Math.max(0,Math.min(72,r.hours_to_deadline==null?24:r.hours_to_deadline))/24];
+   const w=r.recency,y=Math.log(r.vendor_due);
+   for(let i=0;i<P;i++){B[i]+=w*x[i]*y;for(let j=0;j<P;j++)A[i][j]+=w*x[i]*x[j];}
+ }
+ const lam=[0,.8,1.2,1.2,2.0];for(let i=0;i<P;i++)A[i][i]+=lam[i];
+ const beta=solveLinear(A,B);
+ const xq=[1,Math.log1p(q.qty),Math.log(Math.max(q.pages,4)/12),q.size==='A4'?1:0,Math.max(0,Math.min(72,q.hours_to_deadline))/24];
+ return Math.exp(xq.reduce((z,x,i)=>z+x*(beta[i]||0),0));
+}
+function hrjPricingV3(){
+ if(!data.quantity||!data.pages||!data.size)return null;
+ const q={qty:Number(data.quantity),pages:Number(data.pages),size:data.size,hours_to_deadline:Math.max(0,hleft())};
+ const now=new Date();
+ const rows=HRJ_PRICING_V3_DATA.map(x=>{
+   const distance=hrjV2Distance(x,q), similarity=Math.exp(-distance/1.35);
+   const age=Math.max(0,(now-new Date(x.paid_at))/86400000);
+   const recency=.45+.55*Math.exp(-age/540), weight=similarity*recency;
+   return {...x,distance,similarity,recency,weight};
+ });
+ const sw=rows.reduce((z,r)=>z+r.weight,0),sw2=rows.reduce((z,r)=>z+r.weight*r.weight,0);
+ const eff=sw*sw/(sw2+1e-9);
+ const median=hrjWeightedQuantile(rows,.50),p30=hrjWeightedQuantile(rows,.30),p80=hrjWeightedQuantile(rows,.80),p90=hrjWeightedQuantile(rows,.90);
+ const structural=hrjStructuralEstimate(rows,q);
+ const alpha=Math.min(.72,Math.max(.35,eff/10));
+ const expected=alpha*median+(1-alpha)*structural;
+ const target=.55*p30+.45*expected;
+ const protectedAllowance=Math.max(expected+35,p80);
+ const support=eff>=8?'Strong':eff>=4.5?'Moderate':'Weak';
+ const comparables=rows.slice().sort((x,y)=>x.distance-y.distance).slice(0,8);
+ return {target,expected,protectedAllowance,p80,p90,median,structural,effectiveSupport:eff,support,comparables,model:'HRJ Pricing Model V3 — BO1 + BO2'};
+}
+function hrjProductionCost(){
+ const m=hrjPricingV3();
+ if(!m)return {expected:0,conservative:0,opening:0,targetLow:0,targetHigh:0,autoAccept:0,model:null};
+ // Compatibility with existing pricing path: conservative is V2 protected allowance.
+ return {expected:m.expected,conservative:m.protectedAllowance,opening:m.target*.82,targetLow:m.target*.95,targetHigh:m.target*1.05,autoAccept:m.protectedAllowance,model:m};
+}
+
+
+// ---- DNP SELLING PRICE MODEL V1 — BO1 + BO2 ----
+// Customer selling price is modelled independently of HRJ cost. Protected cost is a floor, not the prediction.
+const DNP_SELLING_PRICE_V1_DATA=[{"id":"14697","source":"BO2","qty":5.0,"size2":"nan","pages":16.0,"sell":149.95,"vendor_due":55.0,"paid_at":"2024-12-07 19:33:05","hours_to_deadline":-1.551388888888889,"urgency_reliable":false},{"id":"15688","source":"BO2","qty":1.0,"size2":"A4","pages":16.0,"sell":150.0,"vendor_due":35.0,"paid_at":"2025-03-16 12:33:06","hours_to_deadline":-12.568333333333332,"urgency_reliable":false},{"id":"15948","source":"BO2","qty":10.0,"size2":"A4","pages":42.0,"sell":500.0,"vendor_due":140.0,"paid_at":"2025-04-15 18:03:28","hours_to_deadline":15.442222222222222,"urgency_reliable":true},{"id":"17078","source":"BO2","qty":1.0,"size2":"A4","pages":44.0,"sell":310.0,"vendor_due":45.0,"paid_at":"2025-08-17 20:29:44","hours_to_deadline":13.02111111111111,"urgency_reliable":true},{"id":"17242","source":"BO2","qty":25.0,"size2":"A4","pages":8.0,"sell":450.0,"vendor_due":95.0,"paid_at":"2025-09-09 20:59:54","hours_to_deadline":12.251666666666669,"urgency_reliable":true},{"id":"17381","source":"BO2","qty":125.0,"size2":"A4","pages":20.0,"sell":885.0,"vendor_due":445.0,"paid_at":"2025-09-25 13:44:04","hours_to_deadline":8.765555555555556,"urgency_reliable":true},{"id":"17745","source":"BO2","qty":10.0,"size2":"A5","pages":16.0,"sell":249.9,"vendor_due":50.0,"paid_at":"2025-11-15 15:02:50","hours_to_deadline":32.93611111111111,"urgency_reliable":true},{"id":"17768","source":"BO2","qty":50.0,"size2":"A4","pages":60.0,"sell":1200.0,"vendor_due":445.0,"paid_at":"2025-11-18 19:45:57","hours_to_deadline":14.734166666666669,"urgency_reliable":true},{"id":"17952","source":"BO2","qty":50.0,"size2":"A5","pages":12.0,"sell":650.0,"vendor_due":145.0,"paid_at":"2025-12-29 18:14:38","hours_to_deadline":14.75611111111111,"urgency_reliable":true},{"id":"18381","source":"BO2","qty":50.0,"size2":"A5","pages":40.0,"sell":250.0,"vendor_due":160.0,"paid_at":"2026-03-21 20:53:09","hours_to_deadline":20.614166666666662,"urgency_reliable":true},{"id":"18434","source":"BO2","qty":100.0,"size2":"A5","pages":20.0,"sell":380.0,"vendor_due":150.0,"paid_at":"2026-04-01 20:05:57","hours_to_deadline":16.900833333333335,"urgency_reliable":true},{"id":"18606","source":"BO2","qty":40.0,"size2":"A5","pages":8.0,"sell":400.0,"vendor_due":80.0,"paid_at":"2026-04-25 00:13:48","hours_to_deadline":32.77,"urgency_reliable":true},{"id":"18746","source":"BO2","qty":50.0,"size2":"A4","pages":12.0,"sell":270.0,"vendor_due":90.0,"paid_at":"2026-05-12 17:25:10","hours_to_deadline":48.08055555555556,"urgency_reliable":true},{"id":"18962","source":"BO2","qty":5.0,"size2":"A4","pages":32.0,"sell":360.0,"vendor_due":60.0,"paid_at":"2026-06-07 06:50:34","hours_to_deadline":39.157222222222224,"urgency_reliable":true},{"id":"19015","source":"BO2","qty":25.0,"size2":"A4","pages":24.0,"sell":450.0,"vendor_due":160.0,"paid_at":"2026-06-12 02:15:28","hours_to_deadline":8.742222222222223,"urgency_reliable":true},{"id":"19458","source":"BO2","qty":50.0,"size2":"A5","pages":46.0,"sell":895.0,"vendor_due":250.0,"paid_at":"2026-08-29 19:09:56","hours_to_deadline":28.817777777777778,"urgency_reliable":true},{"id":"b17294.1","source":"BO2","qty":60.0,"size2":"A4","pages":8.0,"sell":1080.0,"vendor_due":140.0,"paid_at":"2025-09-16 13:12:13","hours_to_deadline":5.546388888888889,"urgency_reliable":true},{"id":"b17294.2","source":"BO2","qty":30.0,"size2":"A4","pages":8.0,"sell":540.0,"vendor_due":120.0,"paid_at":"2025-10-06 14:59:41","hours_to_deadline":45.00527777777778,"urgency_reliable":true},{"id":"b17995.1","source":"BO2","qty":40.0,"size2":"A4","pages":40.0,"sell":590.0,"vendor_due":280.0,"paid_at":"2026-01-11 20:41:19","hours_to_deadline":69.31138888888889,"urgency_reliable":true},{"id":"b18034","source":"BO2","qty":2.0,"size2":"A5","pages":32.0,"sell":165.0,"vendor_due":50.0,"paid_at":"2026-01-18 10:59:22","hours_to_deadline":10.010555555555555,"urgency_reliable":true},{"id":"b19014.1","source":"BO2","qty":175.0,"size2":"A4","pages":36.0,"sell":1375.0,"vendor_due":650.0,"paid_at":"2026-06-12 00:58:16","hours_to_deadline":12.028888888888888,"urgency_reliable":true},{"id":"b19014.2","source":"BO2","qty":300.0,"size2":"A4","pages":36.0,"sell":2475.0,"vendor_due":1100.0,"paid_at":"2026-06-12 01:00:16","hours_to_deadline":16.495555555555555,"urgency_reliable":true},{"id":"b19305.1","source":"BO2","qty":50.0,"size2":"A4","pages":12.0,"sell":1400.0,"vendor_due":200.0,"paid_at":"2026-07-19 20:27:56","hours_to_deadline":9.034444444444444,"urgency_reliable":true},{"id":"10296","source":"BO1","qty":100.0,"size2":"A5","pages":36.0,"sell":650.0,"vendor_due":410.0,"paid_at":"2023-11-19 14:12:47","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"11908.2","source":"BO1","qty":100.0,"size2":"A4","pages":20.0,"sell":740.0,"vendor_due":225.0,"paid_at":"2024-05-16 13:46:41","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"12327","source":"BO1","qty":30.0,"size2":"A5","pages":100.0,"sell":1800.0,"vendor_due":300.0,"paid_at":"2024-06-12 22:16:58","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"12361","source":"BO1","qty":1.0,"size2":"A4","pages":60.0,"sell":195.0,"vendor_due":65.0,"paid_at":"2024-06-15 20:01:34","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"12479","source":"BO1","qty":60.0,"size2":"A4","pages":20.0,"sell":465.0,"vendor_due":195.0,"paid_at":"2024-06-24 22:49:42","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"3860.8","source":"BO1","qty":50.0,"size2":"A4","pages":8.0,"sell":335.0,"vendor_due":115.0,"paid_at":"2022-04-21 17:11:08","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"5137","source":"BO1","qty":25.0,"size2":"A4","pages":68.0,"sell":750.0,"vendor_due":350.0,"paid_at":"2022-04-25 16:23:34","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"5268","source":"BO1","qty":50.0,"size2":"A4","pages":16.0,"sell":350.0,"vendor_due":195.0,"paid_at":"2022-05-13 18:35:59","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"7610","source":"BO1","qty":25.0,"size2":"A5","pages":28.0,"sell":243.75,"vendor_due":175.0,"paid_at":"2023-02-14 10:22:38","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"8526","source":"BO1","qty":1.0,"size2":"A4","pages":20.0,"sell":300.0,"vendor_due":35.0,"paid_at":"2023-05-29 19:48:16","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"8636","source":"BO1","qty":1.0,"size2":"A5","pages":16.0,"sell":175.0,"vendor_due":35.0,"paid_at":"2023-06-08 00:00:00","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"b1089","source":"BO1","qty":50.0,"size2":"A5","pages":16.0,"sell":450.0,"vendor_due":200.0,"paid_at":"2022-07-04 13:54:08","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"b1175","source":"BO1","qty":50.0,"size2":"A4","pages":36.0,"sell":1525.0,"vendor_due":375.0,"paid_at":"2022-12-11 08:52:52","hours_to_deadline":24.0,"urgency_reliable":false},{"id":"b1175.3","source":"BO1","qty":30.0,"size2":"A4","pages":36.0,"sell":1350.0,"vendor_due":225.0,"paid_at":"2022-12-11 18:22:29","hours_to_deadline":24.0,"urgency_reliable":false}];
+
+function dnpSellingDistance(r,q){
+ const qd=Math.abs(Math.log((r.qty+5)/(q.qty+5)))*1.35;
+ const pd=Math.abs(r.pages-q.pages)/Math.max(q.pages,12)*2.25;
+ const sd=r.size2===q.size?0:.85;
+ const ud=r.urgency_reliable===false?0:Math.abs(hrjUrgencyBucket(r.hours_to_deadline)-hrjUrgencyBucket(q.hours))*.10;
+ return qd+pd+sd+ud;
+}
+function dnpSellingPriceV1(protectedFulfilment){
+ if(!data.quantity||!data.pages||!data.size)return null;
+ const q={qty:Number(data.quantity),pages:Number(data.pages),size:data.size,hours:Math.max(0,hleft())};
+ const now=new Date();
+ const rs=DNP_SELLING_PRICE_V1_DATA.map(x=>{
+   const distance=dnpSellingDistance(x,q), similarity=Math.exp(-distance/1.35);
+   const age=Math.max(0,(now-new Date(x.paid_at))/86400000);
+   const recency=.45+.55*Math.exp(-age/540),weight=similarity*recency;
+   return {...x,distance,weight,recency};
+ });
+ function wq(p){
+   const a=rs.slice().sort((a,b)=>a.sell-b.sell),total=a.reduce((z,r)=>z+r.weight,0);let c=0;
+   for(const r of a){c+=r.weight;if(c>=p*total)return r.sell;}
+   return a[a.length-1].sell;
+ }
+ const p25=wq(.25),p50=wq(.50),p65=wq(.65),p75=wq(.75),p90=wq(.90);
+ const sw=rs.reduce((z,r)=>z+r.weight,0),sw2=rs.reduce((z,r)=>z+r.weight*r.weight,0),eff=sw*sw/(sw2+1e-9);
+ // Transparent commercial placement within observed customer prices.
+ // <=12h: upper-middle historical band; <=24h: P65; otherwise median.
+ let selectedPercentile=q.hours<=12?75:q.hours<=24?65:50;
+ let historical=selectedPercentile===75?p75:selectedPercentile===65?p65:p50;
+ // Profitability floor uses the protected fulfilment cost but does not apply the old 200–250% markup to it.
+ // Starting floor: protected cost + 100% markup (2× cost). This is a safety floor, not the quote model.
+ const floor=protectedFulfilment*2;
+ const raw=Math.max(historical,floor);
+ const quote=Math.ceil(raw/5)*5;
+ const support=eff>=10?'Strong':eff>=6?'Moderate':'Weak';
+ const comparables=rs.slice().sort((a,b)=>a.distance-b.distance).slice(0,8);
+ return {p25,p50,p65,p75,p90,selectedPercentile,historical,floor,quote,effectiveSupport:eff,support,comparables,
+   model:'DNP Selling Price Model V1 — BO1 + BO2'};
+}
+
+// ---- COURIER / DISTANCE ENGINE V1 ----
+// Standalone prototype: never fabricates mileage. Add verified postcode→HRJ mileage here,
+// or connect a routing API in production. Exact/historical matches carry provenance.
+const HRJ_POSTCODE_DISTANCE={
+  // Developer calibration examples only. Add verified BO2 postcode/mileage pairs here.
+};
+const DISTANCE_BANDS=[
+ {max:3,gophr:12.47,dnp:15,label:'0–3 mi'},
+ {max:5,gophr:15.74,dnp:15,label:'3–5 mi'},
+ {max:8,gophr:21.49,dnp:25,label:'5–8 mi'},
+ {max:12,gophr:28.27,dnp:36,label:'8–12 mi'},
+ {max:20,gophr:40.44,dnp:58,label:'12–20 mi'},
+ {max:35,gophr:50.32,dnp:94,label:'20–35 mi'},
+ {max:80,gophr:82.80,dnp:186,label:'35–80 mi'}
+];
+function normPostcode(x){return String(x||'').toUpperCase().replace(/\s+/g,'').trim()}
+function distanceInfo(){
+ if(data.devMiles!=null && Number(data.devMiles)>=0)return {miles:Number(data.devMiles),source:'DEVELOPER TEST OVERRIDE (not derived from postcode)',label:Number(data.devMiles).toFixed(1)+' mi'};
+ const pc=normPostcode(data.postcode);
+ if(!pc)return {miles:null,source:'missing',label:'Postcode required'};
+ const hit=HRJ_POSTCODE_DISTANCE[pc];
+ if(hit)return {miles:hit.miles,source:hit.source||'historical BO2 route',label:`${hit.miles.toFixed(1)} mi`};
+ return {miles:null,source:'unavailable in standalone prototype',label:'Distance unavailable'};
+}
+function distanceBand(mi){
+ if(mi==null)return null;
+ return DISTANCE_BANDS.find(x=>mi<=x.max)||null;
+}
+function estimatedTravelHours(mi){
+ if(mi==null)return null;
+ // Planning allowance, not live traffic: urban pickup/drop + travel.
+ return Math.max(.55, .35+mi/18);
+}
+function isOOHAt(d){const h=d.getHours()+d.getMinutes()/60;return h>=21||h<7}
+
+// ---- DNP MILEAGE-SENSITIVE POST-RFC ROUTE BUFFER V2 ----
+// Conservative RFC already carries production uncertainty. Do not add another generic 2h recovery penalty.
+// Direct DNP routes require realistic collection/travel time plus a modest mileage-sensitive operating buffer.
+function dnpDirectRequiredHours(miles){
+ if(miles==null||!isFinite(miles))return null;
+ const travel=estimatedTravelHours(miles); // existing planning allowance
+ let operationalBuffer;
+ if(miles<=3) operationalBuffer=.25;       // 15 min extra resilience
+ else if(miles<=5) operationalBuffer=.33;  // 20 min
+ else if(miles<=8) operationalBuffer=.42;  // 25 min
+ else if(miles<=12) operationalBuffer=.50; // 30 min
+ else if(miles<=20) operationalBuffer=.67; // 40 min
+ else operationalBuffer=.83;               // 50 min
+ return travel+operationalBuffer;
+}
+function dnpRouteBufferLabel(miles){
+ const req=dnpDirectRequiredHours(miles);
+ return req==null?'—':`${req.toFixed(2)}h required after Conservative RFC`;
+}
+
+function courierComparison(){
+ const rfc=liveHrjRfc(),dist=distanceInfo(),band=distanceBand(dist.miles),dl=data.deadline;
+ if(!dl)return {dist,band,gophr:null,dnp:null,selected:null};
+ const expWin=(dl-rfc.expectedRfc)/3600000,consWin=(dl-rfc.conservativeRfc)/3600000;
+ const travel=estimatedTravelHours(dist.miles);
+ const nextDay=dl.toDateString()!==rfc.start.toDateString();
+ const early=nextDay&&(dl.getHours()+dl.getMinutes()/60)<12;
+ let g={name:'Gophr',eligible:false,baseline:null,protected:null,reason:'Distance unavailable',expWin,consWin,travel};
+ let d={name:'DNP',eligible:false,baseline:null,protected:null,ooh:0,reason:'Distance unavailable',expWin,consWin,travel,overnight:early};
+ if(band){
+   // Gophr cannot hold overnight/cross day. Under <6h conservative window, baseline history is unsafe.
+   const gCompressed=consWin<6;
+   const gVeryTight=consWin<Math.max(1.25,travel||1);
+   g.baseline=band.gophr;
+   g.eligible=!early&&!gVeryTight;
+   // Diagnostic range proxy only: historical baseline is NOT a live Gophr quote.
+   g.protected=gCompressed?Math.max(g.baseline*2,g.baseline+15):g.baseline;
+   g.reason=early?'Cannot collect tonight, hold overnight and deliver next morning':
+     gVeryTight?'Conservative RFC leaves insufficient Gophr collection/delivery window':
+     gCompressed?'Eligible, but <6h conservative window: compressed pricing/risk; protected estimate uses ≥2× baseline':
+     'Eligible with non-compressed historical delivery window';
+   d.baseline=band.dnp;
+   d.ooh=(isOOHAt(rfc.conservativeRfc)||early)?20:0;
+   d.protected=d.baseline+d.ooh;
+   d.requiredWindow=dnpDirectRequiredHours(dist.miles);
+   d.eligible=early || (d.requiredWindow!=null && consWin>=d.requiredWindow);
+   d.reason=early?'Eligible: DNP can collect late, hold overnight and deliver AM':
+     d.eligible?`Eligible: ${consWin.toFixed(2)}h available after Conservative RFC vs ${d.requiredWindow.toFixed(2)}h mileage-sensitive DNP requirement`:
+     `Not eligible: ${consWin.toFixed(2)}h available after Conservative RFC vs ${d.requiredWindow==null?'unknown':d.requiredWindow.toFixed(2)+'h'} mileage-sensitive DNP requirement`;
+ }
+ let selected=null;
+ if(band){
+   if(early&&d.eligible)selected=d;
+   else if(g.eligible&&d.eligible){
+     // Operational rule: compressed <5–6h favours DNP; otherwise choose cheaper protected route.
+     selected=consWin<6?d:(g.protected<=d.protected?g:d);
+   }else selected=d.eligible?d:(g.eligible?g:null);
+ }
+ return {dist,band,gophr:g,dnp:d,selected,expectedWindow:expWin,conservativeWindow:consWin,travel};
+}
+function deliveryCost(){
+ const c=courierComparison();
+ if(!c.selected)return {baseline:null,ooh:0,total:null,courier:null,comparison:c};
+ return {baseline:c.selected.baseline,ooh:c.selected.ooh||0,total:c.selected.protected,courier:c.selected.name,comparison:c};
+}
+function commercialMarkup(h,route){
+ // Markup, NOT gross margin. 200% markup = cost × 3.00; 250% = cost × 3.50.
+ // Tight/stressful urgent work moves toward the upper end; comfortable routes stay near 200%.
+ let pct=200;
+ if(h<=24)pct=225;
+ if(h<=12)pct=250;
+ if(route&&route.overnight&&h>12)pct=Math.max(pct,225);
+ return pct;
+}
+
+// ---- LIVE HRJ RFC + ROUTE RESILIENCE ----
+// Reads the same customer `data` object used by the conversation.
+// RFC V1 is a local heuristic approximation of the historical HRJ model until the Python
+// model is exposed through an API. It deliberately uses size/pages/qty as primary drivers.
+function liveHrjRfc(){
+ const start=new Date(); // live evaluation/enquiry time
+ const q=Number(data.quantity||25), pages=Number(data.pages||24), size=data.size||'A5';
+ let expected=4.0;
+ // V1 adjustments: page count and quantity matter materially; A4 slightly heavier.
+ expected += Math.max(-0.7,Math.min(2.2,(pages-24)*0.055));
+ expected += Math.max(-0.5,Math.min(1.6,(q-25)*0.018));
+ if(size==='A4') expected+=0.55;
+ // Do NOT make night production artificially faster: historical fast night jobs may be priority jobs.
+ expected=Math.max(2.5,expected);
+ // Conservative duration anchored toward the established HRJ booklet P80 (~8.5h),
+ // while retaining local specification sensitivity.
+ let conservative=Math.max(expected+2.0, expected*1.45);
+ conservative=0.62*conservative+0.38*8.5;
+ return {
+   start,
+   expectedHours:expected,
+   conservativeHours:conservative,
+   expectedRfc:new Date(start.getTime()+expected*3600000),
+   conservativeRfc:new Date(start.getTime()+conservative*3600000),
+   confidence:(q<=50&&pages>=8&&pages<=40&&(size==='A4'||size==='A5'))?'Medium':'Low'
+ };
+}
+function liveResilience(){
+ if(!data.deadline)return {status:'WAITING',productionStatus:'WAITING',deliveryStatus:'WAITING',auto:false,reasons:['Exact customer deadline has not yet been collected.']};
+ const rfc=liveHrjRfc(), dl=data.deadline, cc=courierComparison();
+ const expBuf=(dl-rfc.expectedRfc)/3600000, consBuf=(dl-rfc.conservativeRfc)/3600000;
+ // Production verdict is independent of postcode/courier data.
+ let productionStatus='AMBER',productionReason='';
+ if(expBuf<=0){productionStatus='RED';productionReason='Expected RFC is after the customer deadline.';}
+ else if(consBuf<0){productionStatus='AMBER';productionReason='Expected RFC fits, but Conservative RFC is after the customer deadline: supplier prioritisation / human confirmation may be required.';}
+ else {productionStatus='GREEN';productionReason=`Conservative RFC is before the customer deadline by ${consBuf.toFixed(2)}h; post-RFC sufficiency is assessed separately against the selected courier and mileage.`;}
+
+ let deliveryStatus='AMBER',deliveryReason='',route='Courier route pending',resilience='Unknown',recovery=null;
+ if(cc.dist.miles==null){
+   deliveryStatus='AMBER';
+   deliveryReason='Destination mileage is not yet verified, so courier feasibility and price cannot be safely finalised.';
+ }else if(!cc.selected){
+   deliveryStatus=expBuf<(cc.travel||1)?'RED':'AMBER';
+   deliveryReason='No courier passes the current conservative RFC → deadline window.';
+ }else{
+   route=`HRJ → ${cc.selected.name}${cc.selected.overnight?' late collection → overnight hold → AM delivery':' direct delivery'}`;
+   recovery=consBuf-(cc.travel||1);
+   if(expBuf<(cc.travel||1)){deliveryStatus='RED';deliveryReason='Expected RFC leaves less time than the planning collection/travel allowance.';}
+   else if(cc.selected.overnight){
+     deliveryStatus=consBuf>=1.5?'GREEN':'AMBER';
+     deliveryReason=deliveryStatus==='GREEN'?'DNP overnight-hold capability protects the next-morning route.':'Overnight capability helps, but the morning runway is narrow.';
+   }else if(cc.selected.name==='DNP'){
+     const req=cc.selected.requiredWindow!=null?cc.selected.requiredWindow:(cc.travel||.75);
+     if(consBuf>=req){
+       deliveryStatus='GREEN';
+       deliveryReason=`DNP direct route is feasible at Conservative RFC: ${consBuf.toFixed(2)}h available vs ${req.toFixed(2)}h required for ${cc.dist.miles.toFixed(1)} miles.`;
+     }else{
+       deliveryStatus=expBuf>=req?'AMBER':'RED';
+       deliveryReason=`DNP route needs about ${req.toFixed(2)}h after RFC for ${cc.dist.miles.toFixed(1)} miles; Conservative RFC leaves ${consBuf.toFixed(2)}h.`;
+     }
+   }else if(recovery>=2){deliveryStatus='GREEN';deliveryReason='Third-party courier remains feasible at Conservative RFC with at least ~2h recovery after planning travel.';}
+   else {deliveryStatus='AMBER';deliveryReason='Third-party courier is feasible on expected timing, but conservative recovery capacity is limited.';}
+ }
+ // Overall is worst of production + delivery.
+ const rank={WAITING:0,GREEN:1,AMBER:2,RED:3};
+ let status=rank[productionStatus]>=rank[deliveryStatus]?productionStatus:deliveryStatus;
+ let reasons=[`Production — ${productionStatus}: ${productionReason}`,`Delivery — ${deliveryStatus}: ${deliveryReason}`];
+ return {status,productionStatus,deliveryStatus,auto:status==='GREEN',rfc,route,resilience:deliveryStatus==='GREEN'?'High':deliveryStatus==='RED'?'Low':'Medium',expectedBuffer:expBuf,conservativeBuffer:consBuf,recovery,reasons,couriers:cc,productionReason,deliveryReason};
+}
+function fmtDT(d){return d?d.toLocaleString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}
+function money(x){return x==null?'—':`£${x.toFixed(2)}`}
+function courierLine(x){
+ if(!x)return '—';
+ return `${x.eligible?'ELIGIBLE':'NOT ELIGIBLE'} · baseline ${money(x.baseline)} · protected ${money(x.protected)}${x.ooh?` (includes £${x.ooh.toFixed(0)} OOH)`:''}<br>Reason: ${x.reason}`;
+}
+function liveDiagnosticsHTML(){
+ const f=liveResilience();
+ if(f.status==='WAITING')return `<strong>LIVE ENQUIRY</strong><br>Status: WAITING<br>${f.reasons[0]}`;
+ const d=f.rfc,c=f.couriers,dist=c.dist,hrj=hrjProductionCost();
+ const pe=peRoute(),hr=hrjRoute(),h=hleft();
+ const del=deliveryCost();
+ const protectedFulfilment=del.total==null?null:hrj.conservative+del.total;
+ const selling=protectedFulfilment==null?null:dnpSellingPriceV1(protectedFulfilment);
+ const basePreview=selling?selling.quote:null;
+ const compression=deadlineCompressionBarrier(h,basePreview);
+ const preview=compression.total;
+ const prodDeadlineDelta=f.conservativeBuffer;
+ return `<strong>LIVE ENQUIRY — ${f.status}</strong><br>
+ Source: current customer form/conversation<br><br>
+ <strong>1. CUSTOMER SPECIFICATION</strong><br>
+ Product: Saddle-stitched booklets<br>
+ Quantity: ${data.quantity||'—'} · Size: ${data.size||'—'} · Pages: ${data.pages||'—'}pp including cover<br>
+ Cover: ${data.cover||'—'} · Inner: ${data.inner||'—'}<br>
+ Artwork: ${data.file?'Uploaded — '+esc(data.file):(data.artwork||'—')}<br>
+ Destination: ${esc(data.postcode||'—')} · ${esc(data.address||'—')}<br>
+ Exact deadline: ${fmtDT(data.deadline)}<br>
+ Hours remaining now: ${h.toFixed(2)}h<br><br>
+
+ <strong>2. SUPPLIER ROUTING</strong><br>
+ PrintedEasy: ${pe.eligible?'ELIGIBLE':'NOT ELIGIBLE'}<br>
+ PE reason: ${pe.reason}<br>
+ PE cutoff rule: ${pe.cutoff}<br>
+ HRJ: ${hr.eligible?'ELIGIBLE':'NOT ELIGIBLE'}<br>
+ HRJ reason: ${hr.reason}<br>
+ HRJ operating model: flexible/manual urgent production window<br>
+ Production model used below: HRJ historical booklet RFC model V1<br><br>
+
+ <strong>3. PRODUCTION FORECAST — ${f.productionStatus}</strong><br>
+ Evaluation time: ${fmtDT(d.start)}<br>
+ Expected RFC: ${fmtDT(d.expectedRfc)} (${d.expectedHours.toFixed(2)}h from now)<br>
+ Conservative RFC: ${fmtDT(d.conservativeRfc)} (${d.conservativeHours.toFixed(2)}h from now)<br>
+ RFC confidence: ${d.confidence}<br>
+ Expected RFC → deadline: ${f.expectedBuffer.toFixed(2)}h<br>
+ Conservative RFC → deadline: ${f.conservativeBuffer.toFixed(2)}h<br>
+ Production interpretation: ${f.productionReason}<br>
+ ${prodDeadlineDelta<0?`<strong>⚠ Conservative production runs ${Math.abs(prodDeadlineDelta).toFixed(2)}h beyond the requested deadline.</strong><br>`:''}<br>
+
+ <strong>4. DELIVERY / MILEAGE — ${f.deliveryStatus}</strong><br>
+ Collection origin: HRJ Media, 97 Burdett Road, London E3 4JN<br>
+ Destination postcode: ${esc(data.postcode||'—')}<br>
+ HRJ → destination road distance: ${dist.miles==null?'ROUTING INTEGRATION REQUIRED':dist.miles.toFixed(1)+' miles'}<br>
+ Distance source: ${dist.source}<br>
+ ${data.devMiles!=null?'<strong>⚠ Test mileage is a developer override, not postcode-derived.</strong><br>':''}
+ Distance band: ${c.band?c.band.label:'—'}<br>
+ Planning collection/travel allowance: ${c.travel==null?'—':(c.travel*60).toFixed(0)+' min'}<br>
+ Expected RFC → deadline courier window: ${c.expectedWindow==null?'—':c.expectedWindow.toFixed(2)+'h'}<br>
+ Conservative RFC → deadline courier window: ${c.conservativeWindow==null?'—':c.conservativeWindow.toFixed(2)+'h'}<br><br>
+
+ <strong>5. COURIER COMPARISON</strong><br>
+ GOPHR: ${courierLine(c.gophr)}<br><br>
+ DNP: ${courierLine(c.dnp)}<br><br>
+ Selected courier: ${c.selected?c.selected.name:'NOT YET SELECTABLE'}<br>
+ Selected route: ${f.route}<br>
+ Recovery after planning collection/travel: ${f.recovery==null?'—':f.recovery.toFixed(2)+'h'}<br><br>
+
+ <strong>6. HRJ PRICING MODEL V3 — BO1 + BO2</strong><br>
+ Model: ${hrj.model?hrj.model.model:'—'}<br>
+ Historical support: ${hrj.model?hrj.model.support:'—'} · effective support ${hrj.model?hrj.model.effectiveSupport.toFixed(1):'—'}<br>
+ Negotiation target: ${hrj.model?money(hrj.model.target):'—'}<br>
+ Expected negotiated settlement: ${money(hrj.expected)}<br>
+ Weighted historical median: ${hrj.model?money(hrj.model.median):'—'}<br>
+ Weighted P80: ${hrj.model?money(hrj.model.p80):'—'} · P90: ${hrj.model?money(hrj.model.p90):'—'}<br>
+ <strong>Protected HRJ allowance used for pricing: ${money(hrj.conservative)}</strong><br>
+ Structural fallback estimate: ${hrj.model?money(hrj.model.structural):'—'}<br><br>
+ <strong>Most influential historical HRJ jobs</strong><br>
+ ${hrj.model?hrj.model.comparables.slice(0,6).map((x,i)=>`${i+1}. #${x.order_id} — ${x.qty} × ${x.size2}, ${x.pages}pp — actual HRJ ${money(x.vendor_due)} · distance ${x.distance.toFixed(2)}`).join('<br>'):'—'}<br><br>
+ <strong>7. COST / CUSTOMER PRICE BUILD-UP</strong><br>
+ ${del.total==null?
+ `Courier cost: PENDING — mileage/route required<br>
+ Protected fulfilment cost: PENDING<br>
+ Commercial markup band selected: ${mk}%<br>
+ Customer price: PENDING — do not invent courier cost<br>`:
+ `Selected courier: ${del.courier}<br>
+ Courier baseline: ${money(del.baseline)}<br>
+ OOH surcharge: ${money(del.ooh)}<br>
+ Protected courier cost: ${money(del.total)}<br>
+ Protected fulfilment cost: ${money(protectedFulfilment)}<br>
+ <strong>DNP SELLING PRICE MODEL V1 — BO1 + BO2</strong><br>
+ ${selling?`Historical support: ${selling.support} · effective support ${selling.effectiveSupport.toFixed(1)}<br>
+ P25: ${money(selling.p25)} · Median: ${money(selling.p50)} · P65: ${money(selling.p65)} · P75: ${money(selling.p75)} · P90: ${money(selling.p90)}<br>
+ Commercial position: P${selling.selectedPercentile} = ${money(selling.historical)}<br>
+ Protected-cost floor: ${money(selling.floor)}<br>
+ Base commercial quote: ${money(basePreview)}<br>
+ Deadline compression premium: ${money(compression.premium)}<br>
+ Indicative customer total: <strong>${money(preview)}</strong><br>`:'Selling price pending delivery cost<br>'}
+ VAT on booklet: £0.00<br>`}<br>
+
+ <strong>8. FINAL AUTOMATION DECISION — ${f.status}</strong><br>
+ ${f.reasons.map(x=>'• '+x).join('<br>')}<br>
+ • Automatic payment: ${f.auto?'ALLOWED':'HELD'}<br><br>
+ <span style="color:#98a2b3">Production and delivery are scored separately. Missing mileage cannot hide a production warning. Courier figures use BO2 historical distance-band baselines; they are not live courier quotes.</span>`;
+}
+function refreshLiveDiagnostics(){
+ const el=document.querySelector('#debug'); if(el)el.innerHTML=liveDiagnosticsHTML();
+}
+
+// ---- DEADLINE COMPRESSION BARRIER V1 ----
+function deadlineCompressionBarrier(hours,basePrice){
+ if(hours==null||!isFinite(hours)||basePrice==null)return {premium:0,total:basePrice,label:'Base'};
+ const pts=[[0,1000],[4,600],[6,400],[8,250],[12,100],[18,0],[23,0]];
+ if(hours>=23)return {premium:0,total:basePrice,label:'Base'};
+ let premium=0;
+ if(hours<=0)premium=1000;
+ else{
+   for(let i=0;i<pts.length-1;i++){
+     const a=pts[i],b=pts[i+1];
+     if(hours>=a[0]&&hours<=b[0]){
+       const t=(hours-a[0])/(b[0]-a[0]);
+       premium=a[1]+t*(b[1]-a[1]); break;
+     }
+   }
+ }
+ premium=Math.ceil(premium/25)*25;
+ return {premium,total:Math.ceil((basePrice+premium)/5)*5,label:premium>0?'Deadline compression premium':'Base'};
+}
+
+
+const ROUTE1_BOOKLET_PRICES=[["A5",2000,52,1367.92],["A5",25,64,131.24],["A5",2000,36,1031.92],["A4",100,60,367.08],["A4",1500,8,430.58],["A5",800,72,960.1],["A5",1000,40,738.73],["A4",200,40,430.48],["A5",900,20,436.02],["A4",800,8,306.57],["A4",250,52,657.69],["A5",600,68,809.91],["A4",100,32,214.66],["A4",900,48,1195.07],["A4",1000,68,1741.62],["A4",700,24,666.51],["A4",600,36,819.38],["A4",500,24,582.06],["A4",700,36,878.33],["A5",5000,12,812.57],["A5",100,64,231.26],["A4",200,72,771.82],["A4",100,8,105.92],["A5",2000,60,1558.51],["A5",50,48,135.9],["A4",900,28,878.6],["A4",2500,16,957.22],["A5",250,36,268.78],["A4",200,8,143.75],["A5",100,32,140.13],["A5",500,56,681.91],["A5",250,32,244.08],["A4",1000,52,1404.01],["A5",250,20,172.9],["A5",2000,56,1437.96],["A5",25,52,116.52],["A4",900,16,485.98],["A4",600,20,553.13],["A4",50,20,110.43],["A5",200,68,391.69],["A4",2000,16,802.0],["A5",1500,20,591.47],["A5",200,8,94.58],["A4",200,48,504.45],["A5",600,72,836.76],["A4",800,12,426.81],["A4",800,16,457.36],["A5",700,48,678.16],["A5",100,56,210.01],["A5",800,52,812.57],["A4",900,8,323.52],["A5",800,8,159.54],["A4",800,20,644.88],["A5",600,36,513.89],["A4",2000,32,1496.51],["A5",50,64,164.25],["A4",25,68,191.65],["A5",100,68,244.35],["A4",25,24,98.34],["A5",500,36,457.57],["A5",800,44,773.96],["A5",2000,12,414.68],["A5",1000,28,605.12],["A5",700,12,187.8],["A5",100,40,163.12],["A4",600,16,391.77],["A4",250,20,281.38],["A5",700,36,586.18],["A5",100,72,267.76],["A4",250,64,793.22],["A4",800,72,1565.26],["A4",700,72,1444.93],["A5",500,8,139.68],["A4",50,24,123.44],["A4",600,52,1046.04],["A5",25,36,94.24],["A4",50,64,248.5],["A4",800,64,1393.93],["A5",1000,12,254.62],["A5",250,60,416.71],["A4",2000,72,3035.35],["A5",100,44,175.6],["A5",1500,24,658.78],["A4",1000,28,930.92],["A5",900,28,586.58],["A4",600,64,1177.46],["A5",500,16,206.74],["A4",700,52,1135.45],["A5",2000,32,900.98],["A5",1500,32,756.0],["A4",100,12,112.6],["A5",50,52,144.04],["A5",4500,12,757.59],["A5",2000,16,421.95],["A5",200,40,249.05],["A4",2000,8,514.49],["A5",600,60,795.43],["A5",500,64,669.81],["A5",800,32,534.38],["A4",4500,8,968.56],["A5",25,8,58.14],["A5",1500,48,1024.12],["A4",1000,32,934.96],["A4",250,60,749.51],["A4",1500,60,2115.97],["A4",800,56,1283.09],["A5",800,56,845.6],["A5",900,60,945.08],["A4",100,64,386.86],["A5",900,12,234.84],["A5",200,48,288.15],["A4",1500,68,2325.09],["A5",200,64,371.23],["A5",50,60,157.93],["A4",250,36,469.28],["A4",25,36,123.4],["A4",50,32,147.65],["A4",100,44,278.46],["A4",25,72,209.8],["A4",900,40,1066.5],["A4",800,60,1396.14],["A4",250,40,514.2],["A5",100,28,130.16],["A4",700,44,1037.29],["A5",600,32,458.06],["A5",25,72,149.18],["A4",200,68,698.05],["A4",1000,24,799.53],["A5",200,44,268.91],["A4",50,36,161.27],["A5",2000,24,797.72],["A5",1500,28,747.06],["A5",25,44,105.68],["A4",200,32,354.61],["A5",3000,8,396.53],["A4",700,48,1028.52],["A5",800,12,208.09],["A4",50,12,84.99],["A5",800,28,529.21],["A4",500,16,352.07],["A5",2500,8,347.64],["A4",2500,12,875.53],["A5",200,32,208.75],["A5",50,32,106.33],["A5",1000,60,997.68],["A5",50,72,188.95],["A5",50,12,68.91],["A5",25,60,126.75],["A4",900,12,478.8],["A5",4000,8,480.62],["A4",4000,8,876.06],["A5",250,8,104.76],["A4",900,36,1007.62],["A4",1000,16,514.49],["A5",500,48,594.21],["A4",50,40,173.67],["A4",100,52,319.98],["A4",25,28,107.1],["A4",200,36,392.85],["A4",1500,48,1689.12],["A5",600,48,644.89],["A5",4000,12,695.72],["A5",250,44,320.81],["A4",500,28,667.66],["A4",700,20,632.42],["A5",800,64,839.36],["A5",1000,64,950.48],["A4",2000,36,1695.77],["A4",250,48,611.57],["A4",600,32,712.72],["A5",800,16,248.92],["A5",700,56,790.62],["A4",1500,64,2156.73],["A5",700,20,353.29],["A4",900,52,1314.6],["A5",25,56,121.62],["A4",100,16,116.15],["A5",700,16,233.95],["A5",250,24,197.01],["A5",700,44,700.6],["A4",2000,64,2703.23],["A5",800,48,724.87],["A4",50,16,87.66],["A4",600,72,1324.0],["A4",500,8,226.98],["A4",25,20,89.58],["A5",3500,16,649.57],["A5",900,36,664.96],["A5",250,48,344.92],["A4",500,32,654.29],["A4",2000,52,2299.06],["A5",200,28,190.18],["A4",1500,28,1174.93],["A4",800,36,942.63],["A5",600,64,728.24],["A5",1000,20,477.43],["A4",250,72,936.38],["A4",1000,44,1268.53],["A4",200,60,623.48],["A5",250,68,463.78],["A4",50,8,80.74],["A4",5000,8,1061.19],["A5",2000,28,897.43],["A4",1500,20,910.91],["A5",100,20,106.56],["A4",1000,48,1272.56],["A4",1500,52,1851.73],["A4",25,8,67.61],["A4",25,16,73.62],["A4",600,28,752.88],["A5",900,32,568.93],["A4",800,48,1111.76],["A5",900,40,703.0],["A5",2000,8,305.55],["A5",100,16,85.5],["A4",50,68,262.19],["A5",100,60,221.2],["A4",100,56,346.01],["A4",25,52,157.84],["A4",700,64,1285.58],["A4",600,68,1278.3],["A5",700,28,467.14],["A4",500,52,956.46],["A5",1500,72,1401.59],["A5",25,48,110.8],["A5",250,40,291.76],["A4",3500,16,1259.4],["A4",800,68,1512.72],["A5",900,72,1025.08],["A4",800,28,832.03],["A5",800,36,644.99],["A5",200,24,170.34],["A4",4500,12,1365.27],["A4",500,60,1090.55],["A4",200,28,318.28],["A5",3500,8,438.71],["A5",1000,24,525.66],["A4",900,68,1627.4],["A4",25,56,165.99],["A5",25,16,63.13],["A5",200,72,432.11],["A4",250,56,703.3],["A5",1000,16,276.45],["A4",500,48,861.74],["A4",600,40,859.26],["A4",2000,28,1424.38],["A5",25,28,84.01],["A5",2000,64,1511.95],["A4",200,44,468.1],["A4",1500,36,1384.19],["A4",1000,36,1066.65],["A5",700,40,642.11],["A4",50,48,198.03],["A5",25,24,78.89],["A5",1500,52,1139.63],["A5",3500,12,624.46],["A4",900,44,1191.4],["A4",25,48,148.47],["A4",4500,16,1561.49],["A4",600,12,336.64],["A5",4000,16,718.48],["A5",250,16,130.79],["A5",500,52,638.95],["A5",600,24,360.83],["A4",1000,20,729.04],["A5",100,48,186.27],["A5",1500,36,871.52],["A4",200,20,238.68],["A4",100,20,152.75],["A4",500,64,1063.59],["A5",800,40,654.58],["A5",1000,8,189.15],["A4",800,52,1224.8],["A4",4000,12,1236.63],["A4",250,28,378.07],["A4",25,40,132.16],["A4",100,36,236.32],["A5",5000,8,571.58],["A5",25,68,136.97],["A4",100,68,408.52],["A5",500,20,278.62],["A4",1500,72,2426.95],["A4",2500,8,607.0],["A4",50,72,287.77],["A4",200,16,174.18],["A5",600,20,311.31],["A4",1500,24,1012.56],["A4",50,56,224.22],["A4",900,64,1502.05],["A4",2000,40,1828.62],["A4",25,32,114.64],["A4",500,12,310.21],["A4",800,32,823.84],["A5",2000,44,1233.19],["A5",1500,16,353.04],["A4",700,8,288.13],["A5",900,8,174.13],["A5",50,24,92.45],["A4",2000,24,1225.35],["A4",3500,12,1116.31],["A5",100,8,75.66],["A4",1000,64,1610.16],["A4",800,24,713.24],["A5",800,60,886.72],["A4",1000,60,1606.14],["A5",50,8,67.15],["A4",500,40,788.6],["A4",700,28,777.03],["A5",700,52,774.09],["A5",25,20,73.78],["A5",25,12,61.2],["A5",900,24,514.23],["A4",1500,16,655.13],["A5",500,24,326.97],["A4",2000,12,755.09],["A4",2000,60,2631.17],["A4",100,40,257.39],["A4",3000,16,1104.3],["A5",1500,40,920.53],["A4",50,52,211.73],["A5",1000,68,1050.48],["A5",200,60,353.19],["A4",600,48,944.98],["A5",500,44,551.31],["A5",100,52,198.14],["A5",50,20,84.3],["A4",900,32,882.27],["A5",600,40,562.75],["A4",2000,56,2432.06],["A5",250,28,220.58],["A4",700,68,1392.75],["A4",200,24,275.69],["A4",250,12,202.77],["A4",500,44,888.86],["A5",100,24,117.75],["A4",100,24,173.81],["A5",1000,48,811.1],["A4",200,12,168.85],["A5",1500,64,1231.29],["A4",2000,20,1092.34],["A4",250,8,158.89],["A4",250,68,846.18],["A4",700,56,1187.64],["A5",5000,16,870.24],["A4",50,28,136.45],["A4",1500,56,1953.59],["A5",600,28,410.32],["A5",200,20,150.48],["A5",50,36,113.87],["A4",900,72,1691.8],["A4",100,72,451.08],["A5",1000,36,703.46],["A4",1000,40,1137.14],["A5",600,44,612.26],["A5",900,68,989.23],["A5",500,60,726.0],["A5",1000,56,944.51],["A5",250,64,439.06],["A4",1500,44,1648.21],["A5",1500,56,1188.43],["A4",700,40,930.28],["A4",2000,44,2027.89],["A5",25,40,99.96],["A4",700,32,771.15],["A4",600,60,1192.56],["A4",200,64,659.81],["A4",1000,56,1474.67],["A5",600,8,144.04],["A5",50,28,100.0],["A4",50,44,186.76],["A5",2000,48,1236.91],["A4",100,28,195.48],["A4",600,56,1091.74],["A5",800,20,394.13],["A5",500,72,787.2],["A5",100,36,151.93],["A5",500,12,174.6],["A4",900,24,759.52],["A4",500,72,1197.91],["A5",500,32,413.48],["A4",1500,40,1486.07],["A5",1500,12,340.19],["A5",1500,44,1035.6],["A5",50,56,150.99],["A4",250,16,203.03],["A4",5000,12,1485.48],["A4",5000,16,1708.69],["A4",700,12,382.29],["A4",900,56,1379.0],["A4",200,52,542.67],["A4",700,60,1294.58],["A4",600,44,960.08],["A5",600,16,221.16],["A4",50,60,237.31],["A5",250,72,512.28],["A5",3000,16,573.71],["A5",2000,72,1713.16],["A4",1000,12,506.92],["A5",200,52,308.61],["A4",250,32,422.46],["A5",700,32,518.14],["A4",25,64,182.3],["A5",900,64,897.79],["A4",500,56,996.2],["A5",2000,40,1101.96],["A4",900,60,1504.13],["A4",200,56,585.84],["A5",25,32,88.51],["A4",4000,16,1406.39],["A4",600,8,248.95],["A5",2500,12,482.27],["A4",800,44,1114.2],["A5",800,68,932.82],["A5",1500,60,1278.22],["A4",900,20,693.37],["A4",500,20,490.95],["A4",2000,48,2100.02],["A5",600,12,181.88],["A5",1500,68,1346.81],["A5",2500,16,497.83],["A5",50,68,172.4],["A4",25,60,174.75],["A5",200,56,332.82],["A4",1000,72,1812.28],["A5",1000,52,905.21],["A5",50,16,70.32],["A4",3000,8,699.64],["A5",500,68,778.6],["A5",500,40,501.13],["A5",900,52,861.93],["A4",600,24,633.24],["A4",700,16,428.86],["A4",2000,68,2902.57],["A5",50,40,120.81],["A5",900,48,771.09],["A5",3000,12,556.86],["A5",1500,8,263.56],["A4",3500,8,792.03],["A4",250,44,567.17],["A5",600,56,766.46],["A5",250,52,369.1],["A4",100,48,298.92],["A4",1000,8,340.47],["A5",800,24,458.47],["A4",250,24,332.54],["A5",500,28,371.13],["A5",900,16,262.69],["A4",1500,12,634.76],["A5",700,24,410.25],["A5",700,8,152.78],["A4",25,44,140.92],["A5",1000,72,1084.03],["A5",200,36,228.6],["A5",250,56,392.6],["A5",2000,20,710.53],["A5",700,72,895.79],["A5",200,12,109.12],["A4",3000,12,995.86],["A4",1500,32,1215.84],["A5",4500,16,794.27],["A5",250,12,122.22],["A5",200,16,115.45],["A5",1000,32,603.42],["A5",4500,8,529.61],["A5",700,64,786.67],["A4",25,12,71.37],["A5",1000,44,838.3],["A4",800,40,995.17],["A5",600,52,711.2],["A5",50,44,128.36],["A5",700,68,871.56],["A5",900,44,793.05],["A4",500,68,1164.14],["A5",700,60,828.36],["A4",500,36,769.81],["A5",100,12,84.39],["A5",2000,68,1643.19],["A5",900,56,892.18]];
+function standardPrice(){
+ const options=ROUTE1_BOOKLET_PRICES.filter(r=>r[0]===data.size);
+ if(!options.length||!data.pages||!data.quantity)return null;
+ const pageChoices=[...new Set(options.map(r=>r[2]))].sort((a,b)=>a-b);
+ const page=pageChoices.find(p=>p>=data.pages);
+ if(page==null)return null;
+ const qtyChoices=[...new Set(options.filter(r=>r[2]===page).map(r=>r[1]))].sort((a,b)=>a-b);
+ const qty=qtyChoices.find(q=>q>=data.quantity);
+ if(qty==null)return null;
+ const row=options.find(r=>r[1]===qty&&r[2]===page);
+ if(!row)return null;
+ const supplier=row[3], deliveryAllowance=18;
+ // Smooth monotonic commercial price: 250% markup through £200,
+ // then marginal increments at 175%, then at 100%; no pricing cliffs.
+ const commercial=supplier<=200?3.5*supplier:supplier<=500?700+2.75*(supplier-200):1525+2*(supplier-500);
+ return {supplier,qty,page,deliveryAllowance,quote:Math.ceil((commercial+deliveryAllowance)/5)*5,estimated:qty!==data.quantity||page!==data.pages};
+}
+
+function model(){
+ if(hleft()>=72){let st=standardPrice();if(!st)return {total:null,standard:true};return {total:st.quote,quote:st.quote,standard:true,st,priceConfidence:'Route1 CSV proxy / indicative standard supplier cost'};}
+ let h=hleft(),res=liveResilience(),hrj=hrjProductionCost(),delivery=deliveryCost();
+ let productionExpected=hrj.expected,productionProtected=hrj.conservative;
+ if(delivery.total==null)return {h,res,hrj,delivery,total:null,quote:null,markup:null,selling:null};
+ let expectedFulfilment=productionExpected+delivery.total;
+ let protectedFulfilment=productionProtected+delivery.total;
+ let selling=dnpSellingPriceV1(protectedFulfilment);
+ let baseQuote=selling?selling.quote:null;
+ let compression=deadlineCompressionBarrier(h,baseQuote);
+ let quote=compression.total;
+ return {h,res,hrj,delivery,productionExpected,productionProtected,expectedFulfilment,protectedFulfilment,
+   markup:null,baseQuote,compression,quote,selling,vatRate:0,vat:0,total:quote,
+   priceConfidence:'HRJ V3 + DNP Selling Price V1 + deadline-compression barrier + protected-cost floor'};
+}
+function quote(){
+ if(data.size==='A4'&&data.orientation==='Landscape'&&hleft()<72){$('#quote').style.display='none';$('#checking').style.display='block';$('#debug').innerHTML='HRJ excluded: A4 Landscape cannot be produced on its machine. Manual alternative supplier confirmation required.';return;}
+ if(hleft()>=72){let m=model();if(m.total==null){$('#quote').style.display='none';$('#checking').style.display='block';$('#debug').innerHTML='No supported Route1 booklet cost for this size, page count and quantity; manual quotation required.';return;}$('#checking').style.display='none';$('#quote').style.display='block';$('#commitment').textContent=data.deadline.toLocaleString('en-GB',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});$('#price').innerHTML=`£${m.total.toLocaleString('en-GB')} <small>indicative total · booklet VAT £0</small>`;$('#debug').innerHTML=`<strong>STANDARD PRICING V11</strong><br>Supplier benchmark: Route1 CSV (Express, 150gsm silk, long-edge bound)<br>Matched reference: ${m.st.qty} copies / ${m.st.page}pp / ${data.size}<br>CSV production price: £${m.st.supplier.toFixed(2)}<br>Indicative fulfilment allowance: £${m.st.deliveryAllowance.toFixed(2)}<br>Commercial pricing: smooth markup curve<br><strong>Customer quote: £${m.total.toFixed(2)}</strong><br>${m.st.estimated?'Rounded UP to next available supplier quantity/pages; estimate only.<br>':''}Supplier selection remains internal. No live vendor booking or price confirmation.`;current='done';return;}
+ refreshLiveDiagnostics();let f=feasibility(),q=$('#quote'),c=$('#checking');
+ if(!f.ok){q.style.display='none';c.style.display='block';$('#debug').innerHTML=liveDiagnosticsHTML()+`<br><br><strong>PAYMENT HOLD</strong><br>${f.why}<br>No payment is taken.`;return}
+ c.style.display='none';let m=model();q.style.display='block';
+ $('#commitment').textContent=data.deadline.toLocaleString('en-GB',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+ $('#price').innerHTML=`£${Math.round(m.total).toLocaleString('en-GB')} <small>total · no VAT on booklets</small>`;
+ let pe=peRoute(),hr=hrjRoute();
+ $('#debug').innerHTML=liveDiagnosticsHTML()+`<br><br><strong>PRICING</strong><br>HRJ expected settlement: £${m.hrj.expected.toFixed(2)}<br>HRJ protected settlement: £${m.hrj.conservative.toFixed(2)}<br>Selected courier: ${m.delivery.courier}<br>Courier baseline: ${money(m.delivery.baseline)}<br>OOH surcharge: ${money(m.delivery.ooh)}<br>Protected courier cost: ${money(m.delivery.total)}<br>Protected fulfilment cost: £${m.protectedFulfilment.toFixed(2)}<br>${m.selling?`Historical P25 / Median / P65 / P75 / P90: ${money(m.selling.p25)} / ${money(m.selling.p50)} / ${money(m.selling.p65)} / ${money(m.selling.p75)} / ${money(m.selling.p90)}<br>Commercial position: P${m.selling.selectedPercentile}<br>Protected-cost floor: ${money(m.selling.floor)}<br>`:''}<strong>Customer total: £${m.total.toFixed(2)}</strong> · VAT £0.00`;
+ msg("That's everything I need. I've checked the specification against your <strong>exact latest delivery time</strong>. Your quotation is ready on the right.");
+ current='done';
+}
+function dtLocalValue(d){
+ if(!d)return '';
+ const pad=n=>String(n).padStart(2,'0');
+ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function editableSpecHTML(){
+ const artwork=data.file?'uploaded':(data.artwork||'');
+ return `
+ <div class="spec editable"><span>Product</span><strong>Saddle-stitched booklet</strong></div>
+ <div class="spec editable"><span>Quantity</span><input class="spec-edit" data-field="quantity" type="number" min="1" step="1" value="${data.quantity||''}" placeholder="e.g. 25"></div>
+ <div class="spec editable"><span>Finished size</span><select class="spec-edit" data-field="size"><option value="">Select</option><option value="A5" ${data.size==='A5'?'selected':''}>A5</option><option value="A4" ${data.size==='A4'?'selected':''}>A4</option></select></div>
+ <div class="spec editable"><span>Orientation</span><select class="spec-edit" data-field="orientation"><option value="">Select</option><option value="Portrait" ${data.orientation==='Portrait'?'selected':''}>Portrait</option><option value="Landscape" ${data.orientation==='Landscape'?'selected':''}>Landscape</option></select></div>
+ <div class="spec editable"><span>Pages</span><input class="spec-edit" data-field="pages" type="number" min="4" step="4" value="${data.pages||''}" placeholder="incl. cover"></div>
+ <div class="spec editable"><span>Cover</span><select class="spec-edit wide" data-field="cover"><option value="">Select</option><option ${data.cover==='350gsm Silk'?'selected':''}>350gsm Silk</option><option ${data.cover==='250gsm Silk'?'selected':''}>250gsm Silk</option><option ${data.cover==='170gsm Silk'?'selected':''}>170gsm Silk</option><option ${data.cover==='130gsm Silk'?'selected':''}>130gsm Silk</option></select></div>
+ <div class="spec editable"><span>Inner pages</span><select class="spec-edit wide" data-field="inner"><option value="">Select</option><option ${data.inner==='170gsm Silk'?'selected':''}>170gsm Silk</option><option ${data.inner==='130gsm Silk'?'selected':''}>130gsm Silk</option><option ${data.inner==='250gsm Silk'?'selected':''}>250gsm Silk</option></select></div>
+ <div class="spec editable"><span>Artwork</span><select class="spec-edit" data-field="artwork"><option value="">Select</option><option value="Ready" ${(artwork==='Ready'||artwork==='uploaded')?'selected':''}>Ready</option><option value="Not ready" ${artwork==='Not ready'?'selected':''}>Not ready</option></select></div>
+ <div class="spec editable"><span>Delivery postcode</span><input class="spec-edit wide" data-field="postcode" value="${esc(data.postcode||'')}" placeholder="Postcode"></div>
+ <div class="spec editable"><span>Test mileage</span><input class="spec-edit" data-field="devMiles" type="number" min="0" step=".1" value="${data.devMiles??''}" placeholder="Dev only"></div>
+ <div class="spec editable"><span>Delivery address</span><input class="spec-edit wide" data-field="address" value="${esc(data.address||'')}" placeholder="Address"></div>
+ <div class="spec editable"><span>Required by</span><input class="spec-edit wide" data-field="deadline" type="datetime-local" value="${dtLocalValue(data.deadline)}"></div>`;
+}
+function bindSpecEditors(){
+ document.querySelectorAll('.spec-edit').forEach(el=>{
+   const event=(el.tagName==='SELECT'||el.type==='datetime-local'||el.type==='number')?'change':'change';
+   el.addEventListener(event,()=>{
+     const f=el.dataset.field,v=el.value;
+     if(f==='quantity'||f==='pages'||f==='devMiles')data[f]=v!==''?Number(v):null;
+     else if(f==='deadline')data.deadline=v?new Date(v):null;
+     else if(f==='artwork'){data.artwork=v||null;if(v!=='Ready')data.file=null;}
+     else data[f]=v||null;
+     // Re-render decisions from the edited source of truth.
+     render();
+     if(data.deadline && data.quantity && data.size && data.orientation && data.pages && data.cover && data.inner && data.artwork && data.postcode && data.address){
+       quote();
+     }else{
+       const q=$('#quote'),c=$('#checking'); if(q)q.style.display='none'; if(c)c.style.display='none';
+     }
+   });
+   // Enter commits a field edit. For text inputs it behaves like leaving the field.
+   el.addEventListener('keydown',e=>{
+     if(e.key==='Enter'&&!e.isComposing){e.preventDefault();el.blur();el.dispatchEvent(new Event('change',{bubbles:true}));}
+   });
+ });
+}
+function render(){
+ let fields=[['Product','Saddle-stitched booklet'],['Quantity',data.quantity],['Finished size',data.size],['Orientation',data.orientation],['Pages',data.pages?data.pages+'pp incl. cover':null],['Cover',data.cover],['Inner pages',data.inner],['Artwork',data.file?'Uploaded':data.artwork],['Delivery postcode',data.postcode],['Delivery address',data.address],['Required by',data.deadline?data.deadline.toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):null]];
+ let done=fields.filter(x=>x[1]).length,p=Math.round(done/fields.length*100);
+ $('#progressBar').style.width=p+'%';
+ $('#progressText').textContent=p===100?'Specification complete':`${done} of ${fields.length} details collected`;
+ $('#specList').innerHTML=editableSpecHTML();
+ bindSpecEditors();
+ let miss=fields.filter(x=>!x[1]).map(x=>x[0]);
+ $('#missingBox').className='missing '+(miss.length?'':'complete');
+ $('#missingBox').innerHTML=miss.length?'<strong>Still needed:</strong><br>'+miss.join(' · '):'<strong>✓ Specification complete</strong><br>Changes here immediately recalculate availability, decision and price.';
+ refreshLiveDiagnostics();
+}
+
+function quoteInputsComplete(){
+ return !!(data.deadline && data.quantity && data.size && data.orientation && data.pages &&
+   data.cover && data.inner && data.artwork!==null &&
+   data.postcode && data.address && data.devMiles!=null);
+}
+function autoQuoteIfComplete(){
+ if(quoteInputsComplete()){
+   render();
+   quote();
+   return true;
+ }
+ return false;
+}
+
+function start(){
+ try{
+   let t=$('#initialPrompt').value.trim();
+   if(!t){$('#initialPrompt').focus();return false;}
+   extract(t);
+   $('#homeView').style.display='none';
+   $('#appView').style.display='block';
+   msg(esc(t),'user');
+   setTimeout(()=>{try{
+     msg("Thanks — I'll turn that into a complete booklet specification. I'll only ask for details that are still missing.");
+     if(!autoQuoteIfComplete())next();
+   }catch(err){console.error(err);}},50);
+   return false;
+ }catch(err){
+   console.error(err);
+   alert('PrintPilot could not start: '+(err&&err.message?err.message:String(err)));
+   return false;
+ }
+}
+
+// Keyboard submit support.
+// Initial request is a multiline textarea: Enter submits; Shift+Enter inserts a new line.
+$('#initialPrompt').addEventListener('keydown',e=>{
+  if(e.key==='Enter' && !e.shiftKey && !e.isComposing){e.preventDefault();start();}
+});
+// Chat answers are single-line: Enter behaves exactly like clicking Send.
+$('#replyInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter' && !e.isComposing){e.preventDefault();send();}
+});
+
+function completePayment(){
+  if($('#quote').style.display==='none')return;
+  $('#composer').style.display='none';messages.style.display='none';$('#success').style.display='block';$('#quote').style.display='none';
+}
+
+// When the quote is visible, Enter from a non-editable area can confirm it.
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter' || e.isComposing || e.defaultPrevented)return;
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(['input','textarea','select','button'].includes(tag))return;
+  const q=$('#quote');
+  if(q && getComputedStyle(q).display!=='none') completePayment();
+});
+render();
+</script>
+
+
+</body></html>
